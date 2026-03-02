@@ -1,0 +1,40 @@
+# --- Secrets & credentials ---
+.env
+.env.*
+*.key
+*.pem
+credentials*.json
+
+# --- Data (large, fetched from API) ---
+/data/
+/models/
+*.pt
+*.pkl
+*.h5
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+
+# --- Training outputs & logs ---
+outputs/
+wandb/
+*.log
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Misc ---
+*.swp
+*.swo
+*~

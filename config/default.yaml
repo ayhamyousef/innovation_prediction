@@ -1,0 +1,166 @@
+# ============================================================
+# Innovation Prediction from Patent Text — Default Config
+# ============================================================
+
+# --- Data Collection ---
+data:
+  # API key loaded from .env (ODP_API_KEY) — used by api.uspto.gov
+  start_year: 2002
+  end_year: 2022
+  observation_window_years: 20
+  min_reuse_frequency: 20
+  classification_digits: 6      # first 6 chars of CPC/IPC code
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  cache_dir: "data/cache"
+  max_patents_per_request: 100
+  request_delay_sec: 1.0
+
+# --- Feature Extraction ---
+features:
+  # Technology component features (from paper)
+  access_window_years: 5         # years before emergence for ACCESS_SIZE
+  sim_tech_weights: [0.5, 0.3, 0.2]  # w1, w2, w3 for SIM_TECH
+  # Text features (ODP API provides titles only; abstracts not available)
+  max_text_length: 512
+  use_title: true
+  use_abstract: false            # not available from ODP API
+  use_claims: false              # not available from ODP API
+  # Metadata features
+  use_cpc_codes: true            # CPC codes (mapped to ipc_codes fields internally)
+  use_filing_year: true
+  use_inventor_count: true
+  use_assignee_count: true
+  use_component_features: true   # ACCESS_SIZE, ACCESS_TREND, etc.
+  use_early_invention_features: true  # INVENT_DIVER, INVENT_APPL, ATTENT_SIZE
+
+# --- Clustering (Label Generation) ---
+clustering:
+  method: "dtw_kmeans"           # dtw_kmeans or euclidean_kmeans
+  n_clusters: 4
+  dtw_window: null               # Sakoe-Chiba band width, null=no constraint
+  n_init: 10
+  max_iter: 300
+  random_state: 42
+  z_score_normalize: true
+
+# --- Dataset Splits ---
+splits:
+  method: "time_based"           # time_based or random
+  # For time-based: train on earlier patents, val/test on later
+  train_end_year: 2015
+  val_end_year: 2018
+  # test = everything after val_end_year up to end_year - observation_window
+  # For random split
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_state: 42
+
+# --- Tokenizer ---
+tokenizer:
+  name: "bert-base-uncased"
+  max_length: 512
+  padding: "max_length"
+  truncation: true
+
+# --- Model: Transformer Classifier ---
+model:
+  name: "patent_transformer"
+  # Backbone
+  backbone: "bert-base-uncased"
+  freeze_backbone_layers: 0      # 0 = finetune all
+  # Classification head
+  hidden_dim: 256
+  num_classes: 4
+  dropout: 0.3
+  # Metadata integration
+  metadata_dim: 32               # dimension for metadata embedding
+  use_metadata: true
+  metadata_features_count: 7     # number of numerical metadata features
+  # Fusion strategy: "concat", "gated", "cross_attention"
+  fusion_strategy: "concat"
+
+# --- Model: Ablation Variants ---
+ablations:
+  variants:
+    - name: "text_only"
+      use_metadata: false
+      backbone: "bert-base-uncased"
+      max_length: 512
+    - name: "metadata_text"
+      use_metadata: true
+      backbone: "bert-base-uncased"
+      max_length: 512
+    - name: "text_only_256"
+      use_metadata: false
+      backbone: "bert-base-uncased"
+      max_length: 256
+    - name: "text_only_128"
+      use_metadata: false
+      backbone: "bert-base-uncased"
+      max_length: 128
+    - name: "small_model"
+      use_metadata: true
+      backbone: "prajjwal1/bert-small"
+      max_length: 512
+    - name: "tiny_model"
+      use_metadata: true
+      backbone: "prajjwal1/bert-tiny"
+      max_length: 512
+
+# --- Training ---
+training:
+  epochs: 20
+  batch_size: 32
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  scheduler: "cosine"            # cosine, linear, constant
+  max_grad_norm: 1.0
+  fp16: true
+  gradient_accumulation_steps: 1
+  # Class imbalance
+  use_smote: false               # apply SMOTE to training set
+  use_class_weights: true        # weighted cross-entropy
+  smote_random_state: 42
+  # Early stopping
+  early_stopping_patience: 5
+  early_stopping_metric: "val_macro_f1"
+  # Logging
+  log_every_n_steps: 50
+  eval_every_n_steps: 500
+  save_best_model: true
+  output_dir: "outputs"
+  # Reproducibility
+  seed: 42
+  deterministic: true
+
+# --- Baseline: TF-IDF + Logistic Regression ---
+baseline:
+  tfidf:
+    max_features: 50000
+    ngram_range: [1, 2]
+    min_df: 5
+    max_df: 0.95
+    sublinear_tf: true
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    class_weight: "balanced"
+    solver: "lbfgs"
+    multi_class: "multinomial"
+
+# --- Evaluation ---
+evaluation:
+  metrics:
+    - "accuracy"
+    - "macro_f1"
+    - "weighted_f1"
+    - "macro_precision"
+    - "macro_recall"
+    - "roc_auc"
+    - "cross_entropy"
+  confusion_matrix: true
+  per_class_report: true
+  num_bootstrap_samples: 1000    # for confidence intervals
