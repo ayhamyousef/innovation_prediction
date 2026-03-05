@@ -3,6 +3,9 @@
 02_build_trajectories.py — Extract technologies, compute features, and
 build reuse trajectories from patent data.
 
+Memory-optimized: streams JSONL in two passes to avoid loading all 4.9M
+full patent records into memory at once.
+
 Usage:
     python scripts/02_build_trajectories.py [--config config/default.yaml]
 """
@@ -32,55 +35,99 @@ def main():
     data_cfg = cfg["data"]
     feat_cfg = cfg["features"]
 
-    # Load patents
     patents_path = Path(data_cfg["raw_dir"]) / "patents_all.jsonl"
-    logger.info(f"Loading patents from {patents_path}")
-    patents = []
+
+    # ----------------------------------------------------------------
+    # Pass 1: Stream patents, keep only fields needed for technology
+    # extraction (patent_number, patent_year, ipc_codes_6digit).
+    # This uses ~1GB instead of ~4-5GB for full records.
+    # ----------------------------------------------------------------
+    logger.info(f"Pass 1: Loading minimal patent data from {patents_path}")
+    patents_minimal = []
+    count = 0
     with open(patents_path, "r") as f:
         for line in f:
-            if line.strip():
-                patents.append(json.loads(line))
-    logger.info(f"Loaded {len(patents)} patents")
+            if not line.strip():
+                continue
+            pat = json.loads(line)
+            patents_minimal.append({
+                "patent_number": pat.get("patent_number", ""),
+                "patent_year": pat.get("patent_year"),
+                "ipc_codes_6digit": pat.get("ipc_codes_6digit", []),
+            })
+            count += 1
+            if count % 1_000_000 == 0:
+                logger.info(f"  Read {count:,} patents...")
 
-    # Extract technologies
+    logger.info(f"Loaded {count:,} patents (minimal fields only)")
+
+    # Extract technologies & compute features
     extractor = TechnologyExtractor(
-        ipc_digits=data_cfg["ipc_code_digits"],
+        ipc_digits=data_cfg.get("classification_digits", data_cfg.get("ipc_code_digits", 6)),
         access_window=feat_cfg["access_window_years"],
         sim_tech_weights=feat_cfg["sim_tech_weights"],
     )
 
-    tech_df, component_counts = extractor.extract_technologies(patents)
+    tech_df, component_counts = extractor.extract_technologies(patents_minimal)
+    tech_df = extractor.compute_features(tech_df, component_counts, patents_minimal)
 
-    # Compute features
-    tech_df = extractor.compute_features(tech_df, component_counts, patents)
+    # Free the minimal patent list — no longer needed
+    del patents_minimal
 
-    # Build reuse trajectories
+    # Build reuse trajectories & filter
     filtered_df, trajectories = build_reuse_trajectories(
         tech_df,
         observation_window=data_cfg["observation_window_years"],
         min_reuse=data_cfg["min_reuse_frequency"],
     )
 
+    # Free unfiltered tech_df
+    del tech_df
+
     # Save outputs
     processed_dir = Path(data_cfg["processed_dir"])
     ensure_dir(str(processed_dir))
 
-    # Save tech DataFrame (convert lists to JSON strings for CSV compatibility)
+    # Save tech DataFrame
     save_df = filtered_df.copy()
     for col in save_df.columns:
         if save_df[col].apply(lambda x: isinstance(x, (list, dict))).any():
             save_df[col] = save_df[col].apply(json.dumps)
     save_df.to_csv(processed_dir / "technologies.csv", index=False)
+    del save_df
 
     # Save trajectories
     np.save(processed_dir / "trajectories.npy", trajectories)
 
-    # Save patent lookup for dataset
+    # ----------------------------------------------------------------
+    # Pass 2: Build patent_lookup with ONLY patents referenced by
+    # technologies (early_patent_numbers). Write as streaming JSONL.
+    # ----------------------------------------------------------------
+    needed_patents = set()
+    for _, row in filtered_df.iterrows():
+        pnums = row.get("early_patent_numbers", [])
+        if isinstance(pnums, str):
+            pnums = json.loads(pnums)
+        if isinstance(pnums, list):
+            needed_patents.update(pnums)
+
+    logger.info(f"Pass 2: Extracting {len(needed_patents):,} patents needed "
+                f"for lookup (out of {count:,} total)")
+
     patent_lookup = {}
-    for p in patents:
-        pnum = p.get("patent_number", "")
-        if pnum:
-            patent_lookup[pnum] = p
+    with open(patents_path, "r") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            pat = json.loads(line)
+            pnum = pat.get("patent_number", "")
+            if pnum in needed_patents:
+                patent_lookup[pnum] = pat
+                if len(patent_lookup) >= len(needed_patents):
+                    break  # found all we need
+
+    logger.info(f"Built patent lookup with {len(patent_lookup):,} entries")
+
     with open(processed_dir / "patent_lookup.json", "w") as f:
         json.dump(patent_lookup, f, default=str)
 
@@ -91,7 +138,6 @@ def main():
                 f"{filtered_df['emergence_year'].min()} - "
                 f"{filtered_df['emergence_year'].max()}")
 
-    # Feature statistics
     feature_cols = ["ACCESS_SIZE", "ACCESS_TREND", "SIM_ACCESS",
                     "SIM_TECH", "INVENT_DIVER", "INVENT_APPL", "ATTENT_SIZE"]
     for col in feature_cols:
