@@ -26,8 +26,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
-    accuracy_score, f1_score, classification_report,
-    confusion_matrix, roc_auc_score, log_loss
+    accuracy_score, f1_score, precision_score, recall_score,
+    classification_report, confusion_matrix, roc_auc_score, log_loss
 )
 from scipy.sparse import hstack, csr_matrix
 
@@ -249,8 +249,8 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray,
         "accuracy": accuracy_score(y_true, y_pred),
         "macro_f1": f1_score(y_true, y_pred, average="macro"),
         "weighted_f1": f1_score(y_true, y_pred, average="weighted"),
-        "macro_precision": f1_score(y_true, y_pred, average="macro"),
-        "macro_recall": f1_score(y_true, y_pred, average="macro"),
+        "macro_precision": precision_score(y_true, y_pred, average="macro"),
+        "macro_recall": recall_score(y_true, y_pred, average="macro"),
         "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
         "classification_report": classification_report(
             y_true, y_pred, output_dict=True

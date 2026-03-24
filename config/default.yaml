@@ -5,8 +5,8 @@
 # --- Data Collection ---
 data:
   # API key loaded from .env (ODP_API_KEY) — used by api.uspto.gov
-  start_year: 2002
-  end_year: 2022
+  start_year: 2020
+  end_year: 2020
   observation_window_years: 20
   min_reuse_frequency: 20
   classification_digits: 6      # first 6 chars of CPC/IPC code

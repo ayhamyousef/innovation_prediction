@@ -2,11 +2,8 @@
 Technology reuse trajectory construction and clustering.
 
 Builds cumulative reuse curves for each novel technology, then clusters
-them using DTW + k-means to produce the 4 innovation growth curve labels:
-  Cluster 1: S-shaped trajectory
-  Cluster 2: Fleeting trajectory
-  Cluster 3: Linear trajectory
-  Cluster 4: Exponential trajectory
+them using DTW + k-means to produce innovation growth curve labels.
+Number of clusters and trajectory labels are configurable.
 """
 
 import logging
@@ -233,12 +230,17 @@ def _tslearn_dtw_kmeans(trajectories: np.ndarray, n_clusters: int,
     centers = model.cluster_centers_.squeeze(-1)  # (k, window)
     inertia = model.inertia_
 
+    # Compute silhouette on normalized trajectories (euclidean approx)
+    sil = silhouette_score(trajectories, labels) if len(set(labels)) > 1 else 0
+
     info = {
         "centers": centers,
         "inertia": inertia,
+        "silhouette": sil,
         "method": "tslearn_dtw_kmeans",
     }
-    logger.info(f"DTW k-means complete. Inertia={inertia:.2f}")
+    logger.info(f"DTW k-means complete. Inertia={inertia:.2f}, "
+                f"silhouette={sil:.4f}")
     return labels, info
 
 
@@ -325,12 +327,52 @@ def find_optimal_k(trajectories: np.ndarray, k_range: range = range(2, 11),
 # Cluster Characterization
 # ============================================================
 
+# Default cluster names — these are placeholders assigned by index.
+# Actual trajectory shapes should be validated by plotting cluster centers.
 CLUSTER_NAMES = {
-    0: "S-shaped",
-    1: "Fleeting",
-    2: "Linear",
-    3: "Exponential",
+    0: "Cluster_0",
+    1: "Cluster_1",
+    2: "Cluster_2",
+    3: "Cluster_3",
+    4: "Cluster_4",
 }
+
+
+def compute_clustering_quality(trajectories: np.ndarray, labels: np.ndarray,
+                               centers: Optional[np.ndarray] = None) -> Dict:
+    """
+    Compute clustering quality metrics.
+
+    Returns dict with silhouette, inter-cluster distances, cluster sizes.
+    """
+    n_clusters = len(set(labels))
+    sil = silhouette_score(trajectories, labels) if n_clusters > 1 else 0.0
+
+    # Cluster sizes and proportions
+    sizes = {}
+    for c in sorted(set(labels)):
+        n = int((labels == c).sum())
+        sizes[int(c)] = n
+
+    result = {
+        "silhouette": sil,
+        "n_clusters": n_clusters,
+        "cluster_sizes": sizes,
+        "cluster_proportions": {c: n / len(labels) for c, n in sizes.items()},
+        "min_cluster_pct": min(n / len(labels) for n in sizes.values()) * 100,
+    }
+
+    # Inter-cluster centroid distances
+    if centers is not None and len(centers) > 1:
+        from itertools import combinations
+        dists = {}
+        for i, j in combinations(range(len(centers)), 2):
+            d = float(np.linalg.norm(centers[i] - centers[j]))
+            dists[f"{i}-{j}"] = d
+        result["centroid_distances"] = dists
+        result["mean_centroid_distance"] = float(np.mean(list(dists.values())))
+
+    return result
 
 
 def characterize_clusters(tech_df: pd.DataFrame, labels: np.ndarray,

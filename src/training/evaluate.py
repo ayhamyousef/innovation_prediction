@@ -1,6 +1,6 @@
 """
 Evaluation utilities: confusion matrix plots, per-class analysis,
-ablation result aggregation.
+result aggregation.
 """
 
 import logging
@@ -10,13 +10,6 @@ import numpy as np
 import pandas as pd
 
 logger = logging.getLogger("innovation_prediction.evaluate")
-
-CLUSTER_NAMES = {
-    0: "S-shaped",
-    1: "Fleeting",
-    2: "Linear",
-    3: "Exponential",
-}
 
 
 def format_results_table(results: Dict[str, Dict]) -> pd.DataFrame:
@@ -35,25 +28,36 @@ def format_results_table(results: Dict[str, Dict]) -> pd.DataFrame:
             "Accuracy": metrics.get("accuracy", 0),
             "Macro F1": metrics.get("macro_f1", 0),
             "Weighted F1": metrics.get("weighted_f1", 0),
-            "ROC-AUC": metrics.get("roc_auc", 0),
-            "Cross-Entropy": metrics.get("cross_entropy", float("inf")),
+            "Macro Precision": metrics.get("macro_precision", 0),
+            "Macro Recall": metrics.get("macro_recall", 0),
         })
     df = pd.DataFrame(rows).sort_values("Macro F1", ascending=False)
     return df
 
 
 def per_class_analysis(y_true: np.ndarray, y_pred: np.ndarray,
-                        y_proba: Optional[np.ndarray] = None) -> pd.DataFrame:
+                        y_proba: Optional[np.ndarray] = None,
+                        class_names: Optional[Dict[int, str]] = None
+                        ) -> pd.DataFrame:
     """
     Detailed per-class metrics including confusion patterns.
+
+    Args:
+        y_true: true labels
+        y_pred: predicted labels
+        y_proba: optional predicted probabilities
+        class_names: optional {label: name} mapping. If None, uses Cluster_0, etc.
     """
     from sklearn.metrics import classification_report, confusion_matrix
 
+    classes = sorted(set(y_true))
+    if class_names is None:
+        class_names = {i: f"Cluster_{i}" for i in classes}
+
+    target_names = [class_names.get(i, f"Cluster_{i}") for i in classes]
+
     report = classification_report(
-        y_true, y_pred,
-        target_names=[CLUSTER_NAMES.get(i, f"Class_{i}")
-                       for i in sorted(set(y_true))],
-        output_dict=True,
+        y_true, y_pred, target_names=target_names, output_dict=True,
     )
 
     cm = confusion_matrix(y_true, y_pred)
@@ -61,15 +65,16 @@ def per_class_analysis(y_true: np.ndarray, y_pred: np.ndarray,
 
     rows = []
     for i in range(n_classes):
-        name = CLUSTER_NAMES.get(i, f"Class_{i}")
+        name = target_names[i]
         total = cm[i].sum()
 
         # Most confused with
         confusion_vec = cm[i].copy()
         confusion_vec[i] = 0
         most_confused_idx = confusion_vec.argmax()
-        most_confused_name = CLUSTER_NAMES.get(most_confused_idx,
-                                                 f"Class_{most_confused_idx}")
+        most_confused_name = (target_names[most_confused_idx]
+                              if most_confused_idx < len(target_names)
+                              else f"Cluster_{most_confused_idx}")
         most_confused_pct = confusion_vec[most_confused_idx] / max(total, 1) * 100
 
         rows.append({
@@ -86,7 +91,8 @@ def per_class_analysis(y_true: np.ndarray, y_pred: np.ndarray,
 
 
 def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
-                           save_path: Optional[str] = None):
+                           save_path: Optional[str] = None,
+                           class_names: Optional[Dict[int, str]] = None):
     """Generate and optionally save confusion matrix plot."""
     try:
         import matplotlib
@@ -96,7 +102,11 @@ def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray,
         from sklearn.metrics import confusion_matrix
 
         cm = confusion_matrix(y_true, y_pred)
-        labels = [CLUSTER_NAMES.get(i, f"C{i}") for i in range(cm.shape[0])]
+        n = cm.shape[0]
+        if class_names is None:
+            labels = [f"Cluster_{i}" for i in range(n)]
+        else:
+            labels = [class_names.get(i, f"Cluster_{i}") for i in range(n)]
 
         fig, ax = plt.subplots(figsize=(8, 6))
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
@@ -155,13 +165,3 @@ def plot_training_curves(train_losses: List[float],
         plt.close(fig)
     except ImportError:
         logger.warning("matplotlib not available for plotting")
-
-
-def ablation_summary(ablation_results: Dict[str, Dict]) -> pd.DataFrame:
-    """
-    Summarize ablation study results.
-
-    Args:
-        ablation_results: {variant_name: test_metrics}
-    """
-    return format_results_table(ablation_results)
