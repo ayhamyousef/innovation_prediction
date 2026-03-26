@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-04b_recluster.py — Re-cluster technology trajectories using FAE-selected
-features and variable cluster counts.
+04b_recluster.py — Re-cluster technologies using FAE-selected features
+and variable cluster counts.
 
-Takes FAE output (selected feature indices) and runs DTW k-means
-with k=3, k=4, k=5. Reports clustering quality metrics.
+Clusters on the selected feature vectors (euclidean k-means), NOT on
+trajectories. Trajectories are still used for cluster characterization.
 
 Usage:
     python scripts/04b_recluster.py [--config config/default.yaml]
                                      [--fae-k 3]
                                      [--cluster-k 3 4 5]
-                                     [--method dtw_kmeans]
+                                     [--n-init 10]
 """
 
 import argparse
@@ -20,12 +20,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.data.clustering import (
-    cluster_trajectories, characterize_clusters,
-    compute_clustering_quality, CLUSTER_NAMES,
+    characterize_clusters, CLUSTER_NAMES,
 )
 from src.utils.helpers import load_config, setup_logging, set_seed, save_json
 
@@ -44,20 +46,17 @@ def main():
                              "If None, uses all 7 features (no selection).")
     parser.add_argument("--cluster-k", nargs="+", type=int, default=[3, 4, 5],
                         help="Number of clusters to try")
-    parser.add_argument("--method", default="dtw_kmeans",
-                        choices=["dtw_kmeans", "euclidean_kmeans"])
     parser.add_argument("--n-init", type=int, default=10)
     args = parser.parse_args()
 
     cfg = load_config(args.config)
     set_seed(cfg["training"]["seed"])
-    clust_cfg = cfg["clustering"]
 
     results_dir = Path("results/clustering")
     results_dir.mkdir(parents=True, exist_ok=True)
     logger = setup_logging(str(results_dir))
 
-    # Load trajectories and tech data
+    # Load trajectories (for characterization) and tech data (for features)
     processed_dir = Path(cfg["data"]["processed_dir"])
     trajectories = np.load(processed_dir / "trajectories.npy")
     tech_df = pd.read_csv(processed_dir / "technologies.csv")
@@ -83,29 +82,55 @@ def main():
         feature_tag = "all7"
         logger.info(f"Using all 7 features (no FAE selection)")
 
+    # Build feature matrix from selected columns and z-score normalize
+    feature_matrix = tech_df[selected_names].values.astype(np.float64)
+    scaler = StandardScaler()
+    feature_matrix_scaled = scaler.fit_transform(feature_matrix)
+    logger.info(f"Feature matrix shape: {feature_matrix_scaled.shape}")
+
     # Run clustering for each k
     all_results = {}
 
     for k in args.cluster_k:
         logger.info("=" * 60)
         logger.info(f"Clustering with k={k}, features={selected_names}, "
-                     f"method={args.method}")
+                     f"method=euclidean_kmeans")
         logger.info("=" * 60)
 
-        labels, info = cluster_trajectories(
-            trajectories,
+        km = KMeans(
             n_clusters=k,
-            method=args.method,
-            normalize=clust_cfg["z_score_normalize"],
             n_init=args.n_init,
-            max_iter=clust_cfg["max_iter"],
-            random_state=clust_cfg["random_state"],
-            dtw_window=clust_cfg["dtw_window"],
+            max_iter=300,
+            random_state=cfg["training"]["seed"],
         )
+        labels = km.fit_predict(feature_matrix_scaled)
+        centers = km.cluster_centers_
+        inertia = km.inertia_
 
-        # Quality metrics
-        centers = info.get("centers")
-        quality = compute_clustering_quality(trajectories, labels, centers)
+        # Quality metrics on scaled feature space
+        sil = silhouette_score(feature_matrix_scaled, labels) if len(set(labels)) > 1 else 0.0
+
+        # Cluster sizes
+        sizes = {}
+        for c in sorted(set(labels)):
+            sizes[int(c)] = int((labels == c).sum())
+        min_cluster_pct = min(n / len(labels) for n in sizes.values()) * 100
+
+        # Centroid distances
+        from itertools import combinations
+        centroid_dists = {}
+        for i, j in combinations(range(k), 2):
+            centroid_dists[f"{i}-{j}"] = float(np.linalg.norm(centers[i] - centers[j]))
+        mean_centroid_dist = float(np.mean(list(centroid_dists.values()))) if centroid_dists else 0.0
+
+        quality = {
+            "silhouette": sil,
+            "n_clusters": k,
+            "cluster_sizes": sizes,
+            "min_cluster_pct": min_cluster_pct,
+            "centroid_distances": centroid_dists,
+            "mean_centroid_distance": mean_centroid_dist,
+        }
 
         # Characterize clusters
         char_df = characterize_clusters(tech_df, labels, trajectories)
@@ -130,10 +155,10 @@ def main():
             "feature_tag": feature_tag,
             "selected_features": selected_names,
             "n_clusters": k,
-            "method": args.method,
+            "method": "euclidean_kmeans",
             "quality": quality,
             "cluster_sizes": quality["cluster_sizes"],
-            "inertia": info.get("inertia"),
+            "inertia": inertia,
             "silhouette": quality["silhouette"],
         }
         all_results[run_key] = run_results
