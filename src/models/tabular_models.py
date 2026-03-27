@@ -64,19 +64,18 @@ class TabNetWrapper:
             device_name=self.device if self.device != "auto" else "cpu",
         )
 
-        weights = None
-        if self.class_weights:
-            weights = self.class_weights
-
-        self.model.fit(
-            X_train, y_train,
+        fit_kwargs = dict(
+            X_train=X_train, y_train=y_train,
             eval_set=[(X_val, y_val)],
             eval_metric=["accuracy"],
             max_epochs=self.max_epochs,
             patience=self.patience,
             batch_size=self.batch_size,
-            weights=weights,
         )
+        if self.class_weights:
+            fit_kwargs["weights"] = self.class_weights
+
+        self.model.fit(**fit_kwargs)
         logger.info(f"TabNet training complete. "
                      f"Best epoch: {self.model.best_epoch}")
 
