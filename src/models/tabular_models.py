@@ -226,11 +226,13 @@ class FTTransformerWrapper:
         import torch
         device = torch.device(self.device)
         self.model.eval()
+        all_proba = []
         with torch.no_grad():
-            xt = torch.tensor(X, dtype=torch.float32).to(device)
-            logits = self.model(xt)
-            proba = torch.softmax(logits, dim=-1).cpu().numpy()
-        return proba
+            for i in range(0, len(X), self.batch_size):
+                xb = torch.tensor(X[i:i+self.batch_size], dtype=torch.float32).to(device)
+                logits = self.model(xb)
+                all_proba.append(torch.softmax(logits, dim=-1).cpu().numpy())
+        return np.concatenate(all_proba, axis=0)
 
 
 class _FTTransformerModel(object):
