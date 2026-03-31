@@ -1,0 +1,26 @@
+{
+  "labeled_csv": "results/clustering/technologies_labeled_all7_k5.csv",
+  "features": [
+    "ACCESS_SIZE",
+    "ACCESS_TREND",
+    "SIM_ACCESS",
+    "SIM_TECH",
+    "INVENT_DIVER",
+    "INVENT_APPL",
+    "ATTENT_SIZE"
+  ],
+  "n_features": 7,
+  "n_classes": 5,
+  "test_ratio": 0.4,
+  "val_ratio": 0.1,
+  "split_sizes": {
+    "train": 108923,
+    "val": 12103,
+    "test": 80684
+  },
+  "seed": 42,
+  "device": "cuda",
+  "models": [
+    "tabm"
+  ]
+}

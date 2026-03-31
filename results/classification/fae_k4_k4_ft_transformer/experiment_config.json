@@ -1,0 +1,23 @@
+{
+  "labeled_csv": "results/clustering/technologies_labeled_fae_k4_k4.csv",
+  "features": [
+    "ACCESS_TREND",
+    "SIM_ACCESS",
+    "INVENT_DIVER",
+    "INVENT_APPL"
+  ],
+  "n_features": 4,
+  "n_classes": 4,
+  "test_ratio": 0.4,
+  "val_ratio": 0.1,
+  "split_sizes": {
+    "train": 108923,
+    "val": 12103,
+    "test": 80684
+  },
+  "seed": 42,
+  "device": "cuda",
+  "models": [
+    "ft_transformer"
+  ]
+}

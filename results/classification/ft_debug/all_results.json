@@ -1,0 +1,5 @@
+{
+  "ft_transformer": {
+    "error": "CUDA error: CUBLAS_STATUS_EXECUTION_FAILED when calling cublasLtMatmul with transpose_mat1 1 transpose_mat2 0 m 192 n 322736 k 64 mat1_ld 64 mat2_ld 64 result_ld 192 abcType 0 computeType 68 scaleType 0"
+  }
+}

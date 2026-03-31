@@ -1,0 +1,2 @@
+model,accuracy,macro_f1,macro_precision,macro_recall
+tabnet,0.9912,0.9643,0.9872,0.9461

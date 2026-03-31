@@ -1,0 +1,129 @@
+{
+  "all7_k3": {
+    "feature_tag": "all7",
+    "selected_features": [
+      "ACCESS_SIZE",
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "SIM_TECH",
+      "INVENT_DIVER",
+      "INVENT_APPL",
+      "ATTENT_SIZE"
+    ],
+    "n_clusters": 3,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.3467844821286083,
+      "n_clusters": 3,
+      "cluster_sizes": {
+        "0": 77972,
+        "1": 6674,
+        "2": 117064
+      },
+      "min_cluster_pct": 3.308710525011155,
+      "centroid_distances": {
+        "0-1": 6.767152249746125,
+        "0-2": 2.301914443193295,
+        "1-2": 6.191137012681229
+      },
+      "mean_centroid_distance": 5.0867345685402166
+    },
+    "cluster_sizes": {
+      "0": 77972,
+      "1": 6674,
+      "2": 117064
+    },
+    "inertia": 905250.9605685531,
+    "silhouette": 0.3467844821286083
+  },
+  "all7_k4": {
+    "feature_tag": "all7",
+    "selected_features": [
+      "ACCESS_SIZE",
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "SIM_TECH",
+      "INVENT_DIVER",
+      "INVENT_APPL",
+      "ATTENT_SIZE"
+    ],
+    "n_clusters": 4,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.37098271667552124,
+      "n_clusters": 4,
+      "cluster_sizes": {
+        "0": 78008,
+        "1": 108522,
+        "2": 9081,
+        "3": 6099
+      },
+      "min_cluster_pct": 3.0236478112141194,
+      "centroid_distances": {
+        "0-1": 2.271227764354806,
+        "0-2": 4.47779377811185,
+        "0-3": 7.001968933210616,
+        "1-2": 3.8027089253053212,
+        "1-3": 6.461750841901895,
+        "2-3": 7.100510965537738
+      },
+      "mean_centroid_distance": 5.185993534737038
+    },
+    "cluster_sizes": {
+      "0": 78008,
+      "1": 108522,
+      "2": 9081,
+      "3": 6099
+    },
+    "inertia": 787469.1507701569,
+    "silhouette": 0.37098271667552124
+  },
+  "all7_k5": {
+    "feature_tag": "all7",
+    "selected_features": [
+      "ACCESS_SIZE",
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "SIM_TECH",
+      "INVENT_DIVER",
+      "INVENT_APPL",
+      "ATTENT_SIZE"
+    ],
+    "n_clusters": 5,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.38723215607727113,
+      "n_clusters": 5,
+      "cluster_sizes": {
+        "0": 6094,
+        "1": 106765,
+        "2": 76913,
+        "3": 8440,
+        "4": 3498
+      },
+      "min_cluster_pct": 1.7341728223687471,
+      "centroid_distances": {
+        "0-1": 6.472718665543033,
+        "0-2": 7.0130576752427105,
+        "0-3": 7.153392980701088,
+        "0-4": 8.566572456914074,
+        "1-2": 2.2743039351658623,
+        "1-3": 3.9175967175487356,
+        "1-4": 5.907129240528783,
+        "2-3": 4.589415495363518,
+        "2-4": 6.105843266225008,
+        "3-4": 7.075419672240326
+      },
+      "mean_centroid_distance": 5.907545010547314
+    },
+    "cluster_sizes": {
+      "0": 6094,
+      "1": 106765,
+      "2": 76913,
+      "3": 8440,
+      "4": 3498
+    },
+    "inertia": 673197.006781698,
+    "silhouette": 0.38723215607727113
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "labeled_csv": "results/clustering/technologies_labeled_fae_k3_k4.csv",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "n_features": 3,
+  "n_classes": 4,
+  "test_ratio": 0.4,
+  "val_ratio": 0.1,
+  "split_sizes": {
+    "train": 108923,
+    "val": 12103,
+    "test": 80684
+  },
+  "seed": 42,
+  "device": "cuda",
+  "models": [
+    "ft_transformer"
+  ]
+}

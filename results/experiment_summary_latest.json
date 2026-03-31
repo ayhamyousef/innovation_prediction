@@ -1,0 +1,134 @@
+[
+  {
+    "experiment_id": "fae_k3_k3_ft_transformer",
+    "feature_config": "fae_k3_k3",
+    "model": "ft_transformer",
+    "n_features": 3,
+    "features": "SIM_TECH, ACCESS_SIZE, SIM_ACCESS",
+    "accuracy": 0.9998884537206881,
+    "macro_f1": 0.999471832893062,
+    "macro_precision": 0.9992431558906989,
+    "macro_recall": 0.9997008701258908
+  },
+  {
+    "experiment_id": "fae_k3_k4_ft_transformer",
+    "feature_config": "fae_k3_k4",
+    "model": "ft_transformer",
+    "n_features": 3,
+    "features": "SIM_TECH, ACCESS_SIZE, SIM_ACCESS",
+    "accuracy": 0.9995909969758564,
+    "macro_f1": 0.9985122994849991,
+    "macro_precision": 0.9985505695268813,
+    "macro_recall": 0.9984745539248138
+  },
+  {
+    "experiment_id": "fae_k3_k5_ft_transformer",
+    "feature_config": "fae_k3_k5",
+    "model": "ft_transformer",
+    "n_features": 3,
+    "features": "SIM_TECH, ACCESS_SIZE, SIM_ACCESS",
+    "accuracy": 0.999392692479302,
+    "macro_f1": 0.9954735771779959,
+    "macro_precision": 0.9936544549745017,
+    "macro_recall": 0.9973616302686287
+  },
+  {
+    "experiment_id": "fae_k4_k3_ft_transformer",
+    "feature_config": "fae_k4_k3",
+    "model": "ft_transformer",
+    "n_features": 4,
+    "features": "ACCESS_TREND, SIM_ACCESS, INVENT_DIVER, INVENT_APPL",
+    "accuracy": 0.9992191760448168,
+    "macro_f1": 0.9983684559565574,
+    "macro_precision": 0.9988708116084578,
+    "macro_recall": 0.9978680863564174
+  },
+  {
+    "experiment_id": "fae_k4_k4_ft_transformer",
+    "feature_config": "fae_k4_k4",
+    "model": "ft_transformer",
+    "n_features": 4,
+    "features": "ACCESS_TREND, SIM_ACCESS, INVENT_DIVER, INVENT_APPL",
+    "accuracy": 0.9985746864310148,
+    "macro_f1": 0.996030798766823,
+    "macro_precision": 0.9978387710619606,
+    "macro_recall": 0.9942375530866367
+  },
+  {
+    "experiment_id": "fae_k4_k5_ft_transformer",
+    "feature_config": "fae_k4_k5",
+    "model": "ft_transformer",
+    "n_features": 4,
+    "features": "ACCESS_TREND, SIM_ACCESS, INVENT_DIVER, INVENT_APPL",
+    "accuracy": 0.9989341133310198,
+    "macro_f1": 0.9971941067871033,
+    "macro_precision": 0.9968770492058672,
+    "macro_recall": 0.9975128637987851
+  },
+  {
+    "experiment_id": "fae_k5_k3_ft_transformer",
+    "feature_config": "fae_k5_k3",
+    "model": "ft_transformer",
+    "n_features": 5,
+    "features": "ACCESS_SIZE, INVENT_APPL, ACCESS_TREND, SIM_TECH, INVENT_DIVER",
+    "accuracy": 0.998711020772396,
+    "macro_f1": 0.9975676530705746,
+    "macro_precision": 0.9976758306523733,
+    "macro_recall": 0.9974596092693412
+  },
+  {
+    "experiment_id": "fae_k5_k4_ft_transformer",
+    "feature_config": "fae_k5_k4",
+    "model": "ft_transformer",
+    "n_features": 5,
+    "features": "ACCESS_SIZE, INVENT_APPL, ACCESS_TREND, SIM_TECH, INVENT_DIVER",
+    "accuracy": 0.9984011699965297,
+    "macro_f1": 0.9965239332993904,
+    "macro_precision": 0.9972607906593529,
+    "macro_recall": 0.995804156456501
+  },
+  {
+    "experiment_id": "fae_k5_k5_ft_transformer",
+    "feature_config": "fae_k5_k5",
+    "model": "ft_transformer",
+    "n_features": 5,
+    "features": "ACCESS_SIZE, INVENT_APPL, ACCESS_TREND, SIM_TECH, INVENT_DIVER",
+    "accuracy": 0.998673838679292,
+    "macro_f1": 0.9958852802901376,
+    "macro_precision": 0.9951843220192194,
+    "macro_recall": 0.9965989890721347
+  },
+  {
+    "experiment_id": "all7_k3_ft_transformer",
+    "feature_config": "all7_k3",
+    "model": "ft_transformer",
+    "n_features": 7,
+    "features": "ACCESS_SIZE, ACCESS_TREND, SIM_ACCESS, SIM_TECH, INVENT_DIVER, INVENT_APPL, ATTENT_SIZE",
+    "accuracy": 0.9990828417034356,
+    "macro_f1": 0.9976739955887363,
+    "macro_precision": 0.9962140208051268,
+    "macro_recall": 0.9991484583792468
+  },
+  {
+    "experiment_id": "all7_k4_ft_transformer",
+    "feature_config": "all7_k4",
+    "model": "ft_transformer",
+    "n_features": 7,
+    "features": "ACCESS_SIZE, ACCESS_TREND, SIM_ACCESS, SIM_TECH, INVENT_DIVER, INVENT_APPL, ATTENT_SIZE",
+    "accuracy": 0.9980913192206633,
+    "macro_f1": 0.994909224555673,
+    "macro_precision": 0.9967466100494778,
+    "macro_recall": 0.9930885132436944
+  },
+  {
+    "experiment_id": "all7_k5_ft_transformer",
+    "feature_config": "all7_k5",
+    "model": "ft_transformer",
+    "n_features": 7,
+    "features": "ACCESS_SIZE, ACCESS_TREND, SIM_ACCESS, SIM_TECH, INVENT_DIVER, INVENT_APPL, ATTENT_SIZE",
+    "accuracy": 0.9979797729413514,
+    "macro_f1": 0.9935056652073285,
+    "macro_precision": 0.9930729982492285,
+    "macro_recall": 0.9940308748567664
+  }
+]

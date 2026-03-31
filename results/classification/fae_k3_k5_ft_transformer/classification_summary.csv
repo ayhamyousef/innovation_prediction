@@ -1,0 +1,2 @@
+model,accuracy,macro_f1,macro_precision,macro_recall
+ft_transformer,0.9994,0.9955,0.9937,0.9974

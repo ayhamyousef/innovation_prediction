@@ -1,0 +1,117 @@
+{
+  "fae_k3_k3": {
+    "feature_tag": "fae_k3",
+    "selected_features": [
+      "SIM_TECH",
+      "ACCESS_SIZE",
+      "SIM_ACCESS"
+    ],
+    "n_clusters": 3,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.6535213218773617,
+      "n_clusters": 3,
+      "cluster_sizes": {
+        "0": 104667,
+        "1": 90195,
+        "2": 6848
+      },
+      "min_cluster_pct": 3.3949729810123443,
+      "centroid_distances": {
+        "0-1": 1.8887671489244469,
+        "0-2": 6.1106095773883,
+        "1-2": 6.495603117720854
+      },
+      "mean_centroid_distance": 4.8316599480112
+    },
+    "cluster_sizes": {
+      "0": 104667,
+      "1": 90195,
+      "2": 6848
+    },
+    "inertia": 176673.84394703334,
+    "silhouette": 0.6535213218773617
+  },
+  "fae_k3_k4": {
+    "feature_tag": "fae_k3",
+    "selected_features": [
+      "SIM_TECH",
+      "ACCESS_SIZE",
+      "SIM_ACCESS"
+    ],
+    "n_clusters": 4,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.6786952101991292,
+      "n_clusters": 4,
+      "cluster_sizes": {
+        "0": 99792,
+        "1": 88893,
+        "2": 2120,
+        "3": 10905
+      },
+      "min_cluster_pct": 1.0510138317386346,
+      "centroid_distances": {
+        "0-1": 1.8885432632415604,
+        "0-2": 10.037562380764658,
+        "0-3": 3.2703468834303817,
+        "1-2": 10.29002406253729,
+        "1-3": 3.728513503306899,
+        "2-3": 6.7939507753120365
+      },
+      "mean_centroid_distance": 6.00149014476547
+    },
+    "cluster_sizes": {
+      "0": 99792,
+      "1": 88893,
+      "2": 2120,
+      "3": 10905
+    },
+    "inertia": 113984.3774369836,
+    "silhouette": 0.6786952101991292
+  },
+  "fae_k3_k5": {
+    "feature_tag": "fae_k3",
+    "selected_features": [
+      "SIM_TECH",
+      "ACCESS_SIZE",
+      "SIM_ACCESS"
+    ],
+    "n_clusters": 5,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.6843920363966038,
+      "n_clusters": 5,
+      "cluster_sizes": {
+        "0": 95693,
+        "1": 87818,
+        "2": 4008,
+        "3": 572,
+        "4": 13619
+      },
+      "min_cluster_pct": 0.2835754300728769,
+      "centroid_distances": {
+        "0-1": 1.8922398809059984,
+        "0-2": 6.462536314525597,
+        "0-3": 15.050821986010668,
+        "0-4": 2.2470036060435605,
+        "1-2": 6.73977557909696,
+        "1-3": 15.224280550464167,
+        "1-4": 2.802959005597712,
+        "2-3": 8.599477434054586,
+        "2-4": 4.244489787778867,
+        "3-4": 12.843584741281568
+      },
+      "mean_centroid_distance": 7.6107168885759675
+    },
+    "cluster_sizes": {
+      "0": 95693,
+      "1": 87818,
+      "2": 4008,
+      "3": 572,
+      "4": 13619
+    },
+    "inertia": 86409.75582341515,
+    "silhouette": 0.6843920363966038
+  }
+}

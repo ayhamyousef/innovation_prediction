@@ -1,0 +1,2 @@
+model,accuracy,macro_f1,macro_precision,macro_recall
+tabm,0.9986,0.9956,0.9975,0.9938

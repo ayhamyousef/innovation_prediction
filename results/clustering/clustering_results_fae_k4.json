@@ -1,0 +1,120 @@
+{
+  "fae_k4_k3": {
+    "feature_tag": "fae_k4",
+    "selected_features": [
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "INVENT_DIVER",
+      "INVENT_APPL"
+    ],
+    "n_clusters": 3,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.3360834724560679,
+      "n_clusters": 3,
+      "cluster_sizes": {
+        "0": 101148,
+        "1": 95165,
+        "2": 5397
+      },
+      "min_cluster_pct": 2.675623419761043,
+      "centroid_distances": {
+        "0-1": 1.7545805917728832,
+        "0-2": 5.242251492927108,
+        "1-2": 4.960258872989623
+      },
+      "mean_centroid_distance": 3.985696985896538
+    },
+    "cluster_sizes": {
+      "0": 101148,
+      "1": 95165,
+      "2": 5397
+    },
+    "inertia": 522923.1146155654,
+    "silhouette": 0.3360834724560679
+  },
+  "fae_k4_k4": {
+    "feature_tag": "fae_k4",
+    "selected_features": [
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "INVENT_DIVER",
+      "INVENT_APPL"
+    ],
+    "n_clusters": 4,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.35787201092592696,
+      "n_clusters": 4,
+      "cluster_sizes": {
+        "0": 99584,
+        "1": 93030,
+        "2": 5400,
+        "3": 3696
+      },
+      "min_cluster_pct": 1.8323335481632046,
+      "centroid_distances": {
+        "0-1": 1.757261228956502,
+        "0-2": 5.243204548846943,
+        "0-3": 5.7985200240930865,
+        "1-2": 4.964223290070457,
+        "1-3": 5.786650708399053,
+        "2-3": 7.448154958366304
+      },
+      "mean_centroid_distance": 5.166335793122058
+    },
+    "cluster_sizes": {
+      "0": 99584,
+      "1": 93030,
+      "2": 5400,
+      "3": 3696
+    },
+    "inertia": 406657.4208902152,
+    "silhouette": 0.35787201092592696
+  },
+  "fae_k4_k5": {
+    "feature_tag": "fae_k4",
+    "selected_features": [
+      "ACCESS_TREND",
+      "SIM_ACCESS",
+      "INVENT_DIVER",
+      "INVENT_APPL"
+    ],
+    "n_clusters": 5,
+    "method": "euclidean_kmeans",
+    "quality": {
+      "silhouette": 0.38063077303866694,
+      "n_clusters": 5,
+      "cluster_sizes": {
+        "0": 8333,
+        "1": 97620,
+        "2": 86948,
+        "3": 5134,
+        "4": 3675
+      },
+      "min_cluster_pct": 1.8219225620940953,
+      "centroid_distances": {
+        "0-1": 4.415788066915852,
+        "0-2": 3.675981511531085,
+        "0-3": 5.993731303876924,
+        "0-4": 6.927627420425843,
+        "1-2": 1.6411266376379712,
+        "1-3": 5.3212966445751215,
+        "1-4": 5.813705485505159,
+        "2-3": 5.076624564940951,
+        "2-4": 5.7803415953225645,
+        "3-4": 7.5119124981953
+      },
+      "mean_centroid_distance": 5.215813572892678
+    },
+    "cluster_sizes": {
+      "0": 8333,
+      "1": 97620,
+      "2": 86948,
+      "3": 5134,
+      "4": 3675
+    },
+    "inertia": 305865.5394705626,
+    "silhouette": 0.38063077303866694
+  }
+}
