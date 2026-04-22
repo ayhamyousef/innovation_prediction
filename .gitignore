@@ -28,6 +28,9 @@ outputs/
 wandb/
 *.log
 
+# --- Large result artifacts (keep summaries, exclude per-row labeled data) ---
+results/clustering/technologies_labeled_*.csv
+
 # --- OS / IDE ---
 .DS_Store
 Thumbs.db

@@ -44,6 +44,12 @@ def main():
     parser.add_argument("--fae-k", type=int, default=None,
                         help="FAE K value to use (loads from results/feature_selection/). "
                              "If None, uses all 7 features (no selection).")
+    parser.add_argument("--feature-names", nargs="+", default=None,
+                        help="Arbitrary feature subset (overrides --fae-k). "
+                             "Used by ablation experiments.")
+    parser.add_argument("--feature-tag", default=None,
+                        help="Tag for output files when using --feature-names "
+                             "(e.g. 'noAttentSize'). Required if --feature-names given.")
     parser.add_argument("--cluster-k", nargs="+", type=int, default=[3, 4, 5],
                         help="Number of clusters to try")
     parser.add_argument("--n-init", type=int, default=10)
@@ -65,7 +71,18 @@ def main():
                 f"trajectories shape: {trajectories.shape}")
 
     # Determine which features to use
-    if args.fae_k is not None:
+    if args.feature_names is not None:
+        if args.feature_tag is None:
+            logger.error("--feature-tag is required when --feature-names is given")
+            sys.exit(1)
+        missing = [f for f in args.feature_names if f not in tech_df.columns]
+        if missing:
+            logger.error(f"Unknown feature columns: {missing}")
+            sys.exit(1)
+        selected_names = list(args.feature_names)
+        feature_tag = args.feature_tag
+        logger.info(f"Using custom feature subset (tag={feature_tag}): {selected_names}")
+    elif args.fae_k is not None:
         fae_results_path = Path(f"results/feature_selection/fae_k{args.fae_k}_results.json")
         if not fae_results_path.exists():
             logger.error(f"FAE results not found: {fae_results_path}")
