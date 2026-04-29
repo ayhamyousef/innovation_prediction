@@ -26,7 +26,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score,
-    classification_report, confusion_matrix
+    classification_report, confusion_matrix, log_loss, roc_auc_score
 )
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -41,8 +41,8 @@ FEATURE_COLS = [
 ]
 
 
-def compute_classification_metrics(y_true, y_pred, y_proba=None):
-    """Compute classification metrics."""
+def compute_classification_metrics(y_true, y_pred, y_proba=None, n_classes=None):
+    """Compute classification metrics. y_proba enables cross-entropy and ROC-AUC."""
     metrics = {
         "accuracy": float(accuracy_score(y_true, y_pred)),
         "macro_f1": float(f1_score(y_true, y_pred, average="macro")),
@@ -52,6 +52,29 @@ def compute_classification_metrics(y_true, y_pred, y_proba=None):
         "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),
         "per_class": classification_report(y_true, y_pred, output_dict=True),
     }
+    if y_proba is not None:
+        labels = list(range(n_classes)) if n_classes else None
+        try:
+            metrics["cross_entropy"] = float(log_loss(y_true, y_proba, labels=labels))
+        except Exception as e:
+            metrics["cross_entropy"] = None
+            metrics["cross_entropy_error"] = str(e)
+        try:
+            if n_classes and n_classes > 2:
+                metrics["roc_auc_ovr_macro"] = float(roc_auc_score(
+                    y_true, y_proba, multi_class="ovr", average="macro",
+                    labels=labels,
+                ))
+                metrics["roc_auc_ovo_macro"] = float(roc_auc_score(
+                    y_true, y_proba, multi_class="ovo", average="macro",
+                    labels=labels,
+                ))
+            else:
+                # binary: use positive-class probability
+                pos = y_proba[:, 1] if y_proba.ndim == 2 else y_proba
+                metrics["roc_auc"] = float(roc_auc_score(y_true, pos))
+        except Exception as e:
+            metrics["roc_auc_error"] = str(e)
     return metrics
 
 
@@ -174,7 +197,20 @@ def main():
             y_pred = model.predict(X_test)
             y_proba = model.predict_proba(X_test)
 
-            metrics = compute_classification_metrics(y_test, y_pred, y_proba)
+            metrics = compute_classification_metrics(
+                y_test, y_pred, y_proba, n_classes=n_classes
+            )
+
+            # Train accuracy (overfitting diagnostic)
+            try:
+                y_train_pred = model.predict(X_train)
+                metrics["train_accuracy"] = float(accuracy_score(y_train, y_train_pred))
+                metrics["train_test_gap"] = (
+                    metrics["train_accuracy"] - metrics["accuracy"]
+                )
+            except Exception as e:
+                metrics["train_accuracy_error"] = str(e)
+
             all_results[model_name] = metrics
 
             logger.info(f"\n{model_name} TEST RESULTS:")
@@ -182,6 +218,15 @@ def main():
             logger.info(f"  Macro F1:        {metrics['macro_f1']:.4f}")
             logger.info(f"  Macro Precision: {metrics['macro_precision']:.4f}")
             logger.info(f"  Macro Recall:    {metrics['macro_recall']:.4f}")
+            if "cross_entropy" in metrics and metrics["cross_entropy"] is not None:
+                logger.info(f"  Cross-entropy:   {metrics['cross_entropy']:.6f}")
+            if "roc_auc_ovr_macro" in metrics:
+                logger.info(f"  ROC-AUC (OvR):   {metrics['roc_auc_ovr_macro']:.4f}")
+            if "roc_auc_ovo_macro" in metrics:
+                logger.info(f"  ROC-AUC (OvO):   {metrics['roc_auc_ovo_macro']:.4f}")
+            if "train_accuracy" in metrics:
+                logger.info(f"  Train accuracy:  {metrics['train_accuracy']:.4f}")
+                logger.info(f"  Train-test gap:  {metrics['train_test_gap']:+.4f}")
             logger.info(f"\n  Confusion matrix:")
             for row in metrics["confusion_matrix"]:
                 logger.info(f"    {row}")
