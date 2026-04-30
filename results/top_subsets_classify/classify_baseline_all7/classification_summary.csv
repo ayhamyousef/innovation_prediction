@@ -1,0 +1,3 @@
+model,accuracy,macro_f1,macro_precision,macro_recall
+gbdt,0.9985,0.9965,0.9959,0.9972
+extra_trees,0.9983,0.9953,0.9958,0.9947

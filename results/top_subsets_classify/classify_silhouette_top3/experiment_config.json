@@ -1,0 +1,23 @@
+{
+  "labeled_csv": "results/top_subsets_classify/clustered_csvs/labeled_silhouette_top3.csv",
+  "features": [
+    "ACCESS_TREND",
+    "SIM_ACCESS",
+    "ATTENT_SIZE"
+  ],
+  "n_features": 3,
+  "n_classes": 3,
+  "test_ratio": 0.4,
+  "val_ratio": 0.1,
+  "split_sizes": {
+    "train": 108923,
+    "val": 12103,
+    "test": 80684
+  },
+  "seed": 42,
+  "device": "cuda",
+  "models": [
+    "gbdt",
+    "extra_trees"
+  ]
+}

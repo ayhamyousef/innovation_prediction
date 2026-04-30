@@ -1,0 +1,98 @@
+{
+  "cluster_k": 3,
+  "k_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "n_random_per_k": 10,
+  "summary": [
+    {
+      "K": "1",
+      "fae_features": "SIM_ACCESS",
+      "fae_recon_mse": 0.6435961723327637,
+      "fae_accuracy": 1.0,
+      "fae_macro_f1": 1.0,
+      "random_recon_mse_mean": 0.6990443348884583,
+      "random_recon_mse_std": 0.06341660841417827,
+      "random_accuracy_mean": 0.9475856427544495,
+      "random_accuracy_std": 0.0272861548302787,
+      "fae_recon_better_than_random": 5,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    },
+    {
+      "K": "2",
+      "fae_features": "ACCESS_TREND|SIM_ACCESS",
+      "fae_recon_mse": 0.5078315138816833,
+      "fae_accuracy": 0.9998512716275841,
+      "fae_macro_f1": 0.9989579144472792,
+      "random_recon_mse_mean": 0.565654456615448,
+      "random_recon_mse_std": 0.06182265769180344,
+      "random_accuracy_mean": 0.967681324674037,
+      "random_accuracy_std": 0.011838407228832271,
+      "fae_recon_better_than_random": 8,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    },
+    {
+      "K": "3",
+      "fae_features": "SIM_TECH|SIM_ACCESS|ACCESS_SIZE",
+      "fae_recon_mse": 0.45096808671951294,
+      "fae_accuracy": 0.9998140895344801,
+      "fae_macro_f1": 0.9990739542634061,
+      "random_recon_mse_mean": 0.4141018599271774,
+      "random_recon_mse_std": 0.07076223693955845,
+      "random_accuracy_mean": 0.8201415398344158,
+      "random_accuracy_std": 0.15666175354984033,
+      "fae_recon_better_than_random": 4,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    },
+    {
+      "K": "4",
+      "fae_features": "ATTENT_SIZE|SIM_ACCESS|INVENT_DIVER|ACCESS_TREND",
+      "fae_recon_mse": 0.23998121917247772,
+      "fae_accuracy": 0.9983144117792871,
+      "fae_macro_f1": 0.9988752462129415,
+      "random_recon_mse_mean": 0.28911380022764205,
+      "random_recon_mse_std": 0.06868928117001738,
+      "random_accuracy_mean": 0.8952530861137277,
+      "random_accuracy_std": 0.13908854816347552,
+      "fae_recon_better_than_random": 8,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    },
+    {
+      "K": "5",
+      "fae_features": "ACCESS_SIZE|INVENT_DIVER|ACCESS_TREND|INVENT_APPL|SIM_TECH",
+      "fae_recon_mse": 0.08250130712985992,
+      "fae_accuracy": 0.9981904714689406,
+      "fae_macro_f1": 0.995899253980371,
+      "random_recon_mse_mean": 0.19340549036860466,
+      "random_recon_mse_std": 0.05610484890143682,
+      "random_accuracy_mean": 0.9356018541470427,
+      "random_accuracy_std": 0.059106773322739406,
+      "fae_recon_better_than_random": 10,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    },
+    {
+      "K": "6",
+      "fae_features": "SIM_TECH|ATTENT_SIZE|ACCESS_TREND|ACCESS_SIZE|SIM_ACCESS|INVENT_APPL",
+      "fae_recon_mse": 0.09268633276224136,
+      "fae_accuracy": 0.9989589013930891,
+      "fae_macro_f1": 0.9973292505837978,
+      "random_recon_mse_mean": 0.0779244041070342,
+      "random_recon_mse_std": 0.04918068117788676,
+      "random_accuracy_mean": 0.9763112884834664,
+      "random_accuracy_std": 0.06503349085173467,
+      "fae_recon_better_than_random": 4,
+      "fae_accuracy_better_than_random": 10,
+      "n_random": 10
+    }
+  ]
+}
