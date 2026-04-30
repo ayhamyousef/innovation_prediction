@@ -88,7 +88,8 @@ def main():
                         help="Feature columns to use. If None, uses all 7.")
     parser.add_argument("--models", nargs="+",
                         default=["tabnet", "tabm", "ft_transformer"],
-                        choices=["tabnet", "tabm", "ft_transformer"])
+                        choices=["tabnet", "tabm", "ft_transformer",
+                                 "extra_trees", "gbdt"])
     parser.add_argument("--test-ratio", type=float, default=0.4,
                         help="Fraction for test set (default 0.4)")
     parser.add_argument("--val-ratio", type=float, default=0.1,

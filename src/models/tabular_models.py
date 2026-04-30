@@ -520,6 +520,60 @@ class _TabMModel(nn.Module):
 # Factory
 # ============================================================
 
+class ExtraTreesWrapper:
+    """Extremely Randomized Trees, sklearn implementation.
+
+    Used by Wu & Cheng (FAE paper, AAAI 2021) as the downstream classifier
+    for evaluating selected feature subsets.
+    """
+
+    def __init__(self, n_classes: int, device: str = "cpu", seed: int = 42,
+                 n_estimators: int = 100, n_jobs: int = -1, **kwargs):
+        from sklearn.ensemble import ExtraTreesClassifier
+        self.n_classes = n_classes
+        self.model = ExtraTreesClassifier(
+            n_estimators=n_estimators, random_state=seed, n_jobs=n_jobs,
+        )
+
+    def fit(self, X_train, y_train, X_val=None, y_val=None):
+        self.model.fit(X_train, y_train)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        return self.model.predict_proba(X)
+
+
+class GBDTWrapper:
+    """Gradient-Boosted Decision Trees, sklearn implementation.
+
+    Required for comparison against Chen et al. (Scientometrics 2025), who
+    used GBDT as their best classification model.
+    """
+
+    def __init__(self, n_classes: int, device: str = "cpu", seed: int = 42,
+                 n_estimators: int = 200, max_depth: int = 5,
+                 learning_rate: float = 0.1, **kwargs):
+        from sklearn.ensemble import GradientBoostingClassifier
+        self.n_classes = n_classes
+        self.model = GradientBoostingClassifier(
+            n_estimators=n_estimators, max_depth=max_depth,
+            learning_rate=learning_rate, random_state=seed,
+        )
+
+    def fit(self, X_train, y_train, X_val=None, y_val=None):
+        self.model.fit(X_train, y_train)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        return self.model.predict_proba(X)
+
+
 def build_tabular_model(model_name: str, n_features: int, n_classes: int,
                         device: str = "cpu", seed: int = 42,
                         **kwargs) -> object:
@@ -527,7 +581,7 @@ def build_tabular_model(model_name: str, n_features: int, n_classes: int,
     Factory function to create tabular model by name.
 
     Args:
-        model_name: "tabnet", "tabm", or "ft_transformer"
+        model_name: "tabnet", "tabm", "ft_transformer", "extra_trees", or "gbdt"
         n_features: number of input features
         n_classes: number of output classes
         device: "cpu" or "cuda"
@@ -547,6 +601,15 @@ def build_tabular_model(model_name: str, n_features: int, n_classes: int,
             n_features=n_features, n_classes=n_classes,
             device=device, seed=seed, **kwargs
         )
+    elif model_name == "extra_trees":
+        return ExtraTreesWrapper(
+            n_classes=n_classes, device=device, seed=seed, **kwargs
+        )
+    elif model_name == "gbdt":
+        return GBDTWrapper(
+            n_classes=n_classes, device=device, seed=seed, **kwargs
+        )
     else:
         raise ValueError(f"Unknown model: {model_name}. "
-                         f"Choose from: tabnet, tabm, ft_transformer")
+                         f"Choose from: tabnet, tabm, ft_transformer, "
+                         f"extra_trees, gbdt")
