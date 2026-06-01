@@ -108,24 +108,27 @@ def main():
     tech_df = pd.read_csv(tech_path)
     logger.info(f"Loaded {len(tech_df):,} rows")
 
-    # Build feature matrix and cluster on full feature set to get labels
-    X_full = tech_df[features].values.astype(np.float32)
-    X_full = np.nan_to_num(X_full, nan=0.0)
-    X_full = StandardScaler().fit_transform(X_full)
+    # Build feature matrix from raw features
+    X_raw = tech_df[features].values.astype(np.float32)
+    X_raw = np.nan_to_num(X_raw, nan=0.0)
 
+    # Step 1: cluster on full-data-standardized features to generate labels.
+    # Clustering is unsupervised so using all data here is not classification
+    # leakage; it is just label generation.
+    X_for_clustering = StandardScaler().fit_transform(X_raw)
     km = KMeans(n_clusters=args.cluster_k, n_init=10, max_iter=300,
                 random_state=seed)
-    y_full = km.fit_predict(X_full)
+    y_full = km.fit_predict(X_for_clustering)
     n_classes = args.cluster_k
     logger.info(f"Cluster sizes: "
                 f"{dict((int(c), int((y_full == c).sum())) for c in range(n_classes))}")
 
-    # Stratified 60/40 split (full test set fixed across all runs)
-    X_train_full, X_test, y_train_full, y_test = train_test_split(
-        X_full, y_full, test_size=args.test_ratio,
+    # Step 2: stratified 60/40 split on RAW features (test set fixed across runs)
+    X_train_raw, X_test_raw, y_train_full, y_test = train_test_split(
+        X_raw, y_full, test_size=args.test_ratio,
         random_state=seed, stratify=y_full,
     )
-    logger.info(f"Full train n={len(X_train_full):,} | Test n={len(X_test):,}")
+    logger.info(f"Full train n={len(X_train_raw):,} | Test n={len(X_test_raw):,}")
 
     # Detect device
     device = "cpu"
@@ -142,23 +145,30 @@ def main():
     run_i = 0
 
     for frac in args.fractions:
-        n_sub = max(int(len(X_train_full) * frac), n_classes * 10)
+        n_sub = max(int(len(X_train_raw) * frac), n_classes * 10)
         for seed_offset in range(args.n_seeds):
             sub_seed = seed + seed_offset * 1000
-            # Stratified subsample of the train set
+            # Stratified subsample of the train set (still raw)
             if frac < 1.0:
-                X_sub, _, y_sub, _ = train_test_split(
-                    X_train_full, y_train_full, train_size=n_sub,
+                X_sub_raw, _, y_sub, _ = train_test_split(
+                    X_train_raw, y_train_full, train_size=n_sub,
                     random_state=sub_seed, stratify=y_train_full,
                 )
             else:
-                X_sub, y_sub = X_train_full, y_train_full
+                X_sub_raw, y_sub = X_train_raw, y_train_full
 
-            # 90/10 train/val within the subsample
-            X_tr, X_val, y_tr, y_val = train_test_split(
-                X_sub, y_sub, test_size=0.1,
+            # 90/10 train/val within the subsample, still raw
+            X_tr_raw, X_val_raw, y_tr, y_val = train_test_split(
+                X_sub_raw, y_sub, test_size=0.1,
                 random_state=sub_seed, stratify=y_sub,
             )
+
+            # Refit StandardScaler on the actual training subset only.
+            # This is what a real reduced-data setting would have access to.
+            sc = StandardScaler()
+            X_tr = sc.fit_transform(X_tr_raw)
+            X_val = sc.transform(X_val_raw)
+            X_test = sc.transform(X_test_raw)
 
             for model_name in args.models:
                 run_i += 1

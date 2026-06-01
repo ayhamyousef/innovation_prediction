@@ -115,20 +115,24 @@ def main():
     X_raw = tech_df[existing_cols].values.astype(np.float32)
     X_raw = np.nan_to_num(X_raw, nan=0.0)
 
-    # Standardize once for all downstream use
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X_raw)
-
-    # Train/test split, stratified by an externally-generated label
-    # (use cluster_k clusters on FULL feature space to get a balanced split)
+    # Step 1: generate stratification labels via KMeans on full-data-standardized
+    # features. Clustering is unsupervised so using all data here is acceptable
+    # and is not the same as classification leakage.
+    X_for_clustering = StandardScaler().fit_transform(X_raw)
     km_full = KMeans(n_clusters=args.cluster_k, n_init=10, max_iter=300,
                      random_state=seed)
-    full_labels = km_full.fit_predict(X)
+    full_labels = km_full.fit_predict(X_for_clustering)
 
-    X_train, X_test, y_train_full, y_test_full = train_test_split(
-        X, full_labels, test_size=args.test_ratio, random_state=seed,
+    # Step 2: stratified split on RAW features so we can refit the scaler on
+    # train only (proper standardization for the downstream classifier).
+    X_train_raw, X_test_raw, y_train_full, y_test_full = train_test_split(
+        X_raw, full_labels, test_size=args.test_ratio, random_state=seed,
         stratify=full_labels,
     )
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train_raw)
+    X_test = scaler.transform(X_test_raw)
     logger.info(f"Train n={len(X_train):,} | Test n={len(X_test):,}")
 
     rng = np.random.RandomState(seed)
