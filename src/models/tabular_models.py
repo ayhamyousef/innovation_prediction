@@ -559,7 +559,8 @@ class TabKANWrapper:
         from torch.utils.data import TensorDataset, DataLoader
 
         try:
-            from tabkan import ChebyshevKANMixer
+            from tabkan import KANMixer
+            from tabkan.chebyshev.model import ChebyKANLayer
         except ImportError as e:
             raise ImportError(
                 "tabkan package not installed. Run: pip install tabkan"
@@ -568,14 +569,18 @@ class TabKANWrapper:
         torch.manual_seed(self.seed)
         device = torch.device(self.device)
 
-        self.model = ChebyshevKANMixer(
+        # KANMixer takes a per-layer KAN class. ChebyKANLayer is the single-
+        # layer Chebyshev KAN; its constructor is (input_dim, output_dim, degree),
+        # so we pass degree as the extra kwarg.
+        self.model = KANMixer(
             num_features=self.n_features,
             num_classes=self.n_classes,
+            kan_layer_class=ChebyKANLayer,
             num_layers=self.num_layers,
             token_dim=self.token_dim,
             channel_dim=self.channel_dim,
-            token_order=self.token_order,
-            channel_order=self.channel_order,
+            token_kan_kwargs={"degree": self.token_order},
+            channel_kan_kwargs={"degree": self.channel_order},
         ).to(device)
 
         optimizer = torch.optim.AdamW(
