@@ -79,7 +79,8 @@ def main():
                         help="Training-set fractions to sweep")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS,
                         choices=["tabnet", "tabm", "ft_transformer",
-                                 "extra_trees", "gbdt"])
+                                 "extra_trees", "gbdt",
+                                 "tabkan", "tabmixer"])
     parser.add_argument("--test-ratio", type=float, default=0.4)
     parser.add_argument("--n-seeds", type=int, default=1,
                         help="Number of seeds per (fraction, model) combo")
