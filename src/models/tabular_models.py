@@ -517,6 +517,323 @@ class _TabMModel(nn.Module):
 
 
 # ============================================================
+# TabKAN (Kolmogorov-Arnold mixer for tabular)
+# ============================================================
+
+class TabKANWrapper:
+    """TabKAN: KAN-flavored mixer for tabular data.
+
+    Uses ChebyshevKANMixer from the tabkan package (Eslamian et al., 2025,
+    https://arxiv.org/abs/2504.06559). Wrapped in our standard train loop
+    so it composes with the rest of the pipeline.
+    """
+
+    def __init__(self, n_features: int, n_classes: int,
+                 num_layers: int = 4,
+                 token_dim: int = 64, channel_dim: int = 128,
+                 token_order: int = 3, channel_order: int = 3,
+                 lr: float = 1e-3, weight_decay: float = 1e-5,
+                 max_epochs: int = 200, patience: int = 20,
+                 batch_size: int = 256, seed: int = 42,
+                 device: str = "cpu"):
+        self.n_features = n_features
+        self.n_classes = n_classes
+        self.num_layers = num_layers
+        self.token_dim = token_dim
+        self.channel_dim = channel_dim
+        self.token_order = token_order
+        self.channel_order = channel_order
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.max_epochs = max_epochs
+        self.patience = patience
+        self.batch_size = batch_size
+        self.seed = seed
+        self.device = device
+        self.model = None
+
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray,
+            X_val: np.ndarray, y_val: np.ndarray):
+        import torch
+        import torch.nn as nn
+        from torch.utils.data import TensorDataset, DataLoader
+
+        try:
+            from tabkan import ChebyshevKANMixer
+        except ImportError as e:
+            raise ImportError(
+                "tabkan package not installed. Run: pip install tabkan"
+            ) from e
+
+        torch.manual_seed(self.seed)
+        device = torch.device(self.device)
+
+        self.model = ChebyshevKANMixer(
+            num_features=self.n_features,
+            num_classes=self.n_classes,
+            num_layers=self.num_layers,
+            token_dim=self.token_dim,
+            channel_dim=self.channel_dim,
+            token_order=self.token_order,
+            channel_order=self.channel_order,
+        ).to(device)
+
+        optimizer = torch.optim.AdamW(
+            self.model.parameters(), lr=self.lr,
+            weight_decay=self.weight_decay,
+        )
+        criterion = nn.CrossEntropyLoss()
+
+        train_ds = TensorDataset(
+            torch.tensor(X_train, dtype=torch.float32),
+            torch.tensor(y_train, dtype=torch.long),
+        )
+        val_ds = TensorDataset(
+            torch.tensor(X_val, dtype=torch.float32),
+            torch.tensor(y_val, dtype=torch.long),
+        )
+        train_loader = DataLoader(train_ds, batch_size=self.batch_size,
+                                   shuffle=True)
+        val_loader = DataLoader(val_ds, batch_size=self.batch_size)
+
+        best_val_loss = float("inf")
+        patience_counter = 0
+        best_state = None
+
+        for epoch in range(1, self.max_epochs + 1):
+            self.model.train()
+            for xb, yb in train_loader:
+                xb, yb = xb.to(device), yb.to(device)
+                optimizer.zero_grad()
+                logits = self.model(xb)
+                loss = criterion(logits, yb)
+                loss.backward()
+                optimizer.step()
+
+            self.model.eval()
+            val_loss = 0.0
+            n_val = 0
+            with torch.no_grad():
+                for xb, yb in val_loader:
+                    xb, yb = xb.to(device), yb.to(device)
+                    val_loss += criterion(self.model(xb), yb).item() * len(xb)
+                    n_val += len(xb)
+            val_loss /= max(n_val, 1)
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                patience_counter = 0
+                best_state = {k: v.cpu().clone()
+                              for k, v in self.model.state_dict().items()}
+            else:
+                patience_counter += 1
+
+            if epoch % 20 == 0:
+                logger.info(f"TabKAN epoch {epoch}: val_loss={val_loss:.4f}")
+
+            if patience_counter >= self.patience:
+                logger.info(f"TabKAN early stop at epoch {epoch}")
+                break
+
+        if best_state:
+            self.model.load_state_dict(best_state)
+        self.model.eval()
+        logger.info(f"TabKAN training complete. "
+                    f"Best val_loss={best_val_loss:.4f}")
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        proba = self.predict_proba(X)
+        return proba.argmax(axis=1)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        import torch
+        device = torch.device(self.device)
+        self.model.eval()
+        all_proba = []
+        with torch.no_grad():
+            for i in range(0, len(X), self.batch_size):
+                xb = torch.tensor(X[i:i+self.batch_size],
+                                  dtype=torch.float32).to(device)
+                logits = self.model(xb)
+                all_proba.append(torch.softmax(logits, dim=-1).cpu().numpy())
+        return np.concatenate(all_proba, axis=0)
+
+
+# ============================================================
+# TabMixer (MLP-Mixer variant for tabular)
+# ============================================================
+
+class TabMixerWrapper:
+    """TabMixer: MLP-Mixer architecture for tabular data.
+
+    Uses TabMixer from the TabMixer package (Eslamian et al., 2024,
+    https://arxiv.org/abs/2409.07564). The base TabMixer expects
+    (B, dim_tokens, dim_features) input, so we wrap it with a per-feature
+    embedding layer and a classification head.
+    """
+
+    def __init__(self, n_features: int, n_classes: int,
+                 dim_features: int = 64,
+                 dim_feedforward: int = 256,
+                 lr: float = 1e-3, weight_decay: float = 1e-5,
+                 max_epochs: int = 200, patience: int = 20,
+                 batch_size: int = 256, seed: int = 42,
+                 device: str = "cpu"):
+        self.n_features = n_features
+        self.n_classes = n_classes
+        self.dim_features = dim_features
+        self.dim_feedforward = dim_feedforward
+        self.lr = lr
+        self.weight_decay = weight_decay
+        self.max_epochs = max_epochs
+        self.patience = patience
+        self.batch_size = batch_size
+        self.seed = seed
+        self.device = device
+        self.model = None
+
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray,
+            X_val: np.ndarray, y_val: np.ndarray):
+        import torch
+        import torch.nn as nn
+        from torch.utils.data import TensorDataset, DataLoader
+
+        torch.manual_seed(self.seed)
+        device = torch.device(self.device)
+
+        self.model = _TabMixerModel(
+            n_features=self.n_features,
+            n_classes=self.n_classes,
+            dim_features=self.dim_features,
+            dim_feedforward=self.dim_feedforward,
+        ).to(device)
+
+        optimizer = torch.optim.AdamW(
+            self.model.parameters(), lr=self.lr,
+            weight_decay=self.weight_decay,
+        )
+        criterion = nn.CrossEntropyLoss()
+
+        train_ds = TensorDataset(
+            torch.tensor(X_train, dtype=torch.float32),
+            torch.tensor(y_train, dtype=torch.long),
+        )
+        val_ds = TensorDataset(
+            torch.tensor(X_val, dtype=torch.float32),
+            torch.tensor(y_val, dtype=torch.long),
+        )
+        train_loader = DataLoader(train_ds, batch_size=self.batch_size,
+                                   shuffle=True)
+        val_loader = DataLoader(val_ds, batch_size=self.batch_size)
+
+        best_val_loss = float("inf")
+        patience_counter = 0
+        best_state = None
+
+        for epoch in range(1, self.max_epochs + 1):
+            self.model.train()
+            for xb, yb in train_loader:
+                xb, yb = xb.to(device), yb.to(device)
+                optimizer.zero_grad()
+                logits = self.model(xb)
+                loss = criterion(logits, yb)
+                loss.backward()
+                optimizer.step()
+
+            self.model.eval()
+            val_loss = 0.0
+            n_val = 0
+            with torch.no_grad():
+                for xb, yb in val_loader:
+                    xb, yb = xb.to(device), yb.to(device)
+                    val_loss += criterion(self.model(xb), yb).item() * len(xb)
+                    n_val += len(xb)
+            val_loss /= max(n_val, 1)
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                patience_counter = 0
+                best_state = {k: v.cpu().clone()
+                              for k, v in self.model.state_dict().items()}
+            else:
+                patience_counter += 1
+
+            if epoch % 20 == 0:
+                logger.info(f"TabMixer epoch {epoch}: val_loss={val_loss:.4f}")
+
+            if patience_counter >= self.patience:
+                logger.info(f"TabMixer early stop at epoch {epoch}")
+                break
+
+        if best_state:
+            self.model.load_state_dict(best_state)
+        self.model.eval()
+        logger.info(f"TabMixer training complete. "
+                    f"Best val_loss={best_val_loss:.4f}")
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        proba = self.predict_proba(X)
+        return proba.argmax(axis=1)
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        import torch
+        device = torch.device(self.device)
+        self.model.eval()
+        all_proba = []
+        with torch.no_grad():
+            for i in range(0, len(X), self.batch_size):
+                xb = torch.tensor(X[i:i+self.batch_size],
+                                  dtype=torch.float32).to(device)
+                logits = self.model(xb)
+                all_proba.append(torch.softmax(logits, dim=-1).cpu().numpy())
+        return np.concatenate(all_proba, axis=0)
+
+
+class _TabMixerModel(nn.Module):
+    """Wraps the upstream TabMixer module with per-feature embedding and
+    a classification head. The TabMixer block itself expects
+    (B, dim_tokens, dim_features); we set dim_tokens = n_features.
+    """
+
+    def __init__(self, n_features: int, n_classes: int,
+                 dim_features: int = 64, dim_feedforward: int = 256):
+        super().__init__()
+        try:
+            from tabmixer import TabMixer
+        except ImportError as e:
+            raise ImportError(
+                "TabMixer package not installed. "
+                "Run: pip install TabMixer"
+            ) from e
+
+        # Per-feature embedding: each scalar feature -> dim_features vector
+        self.feature_embeddings = nn.ModuleList([
+            nn.Linear(1, dim_features) for _ in range(n_features)
+        ])
+
+        self.mixer = TabMixer(
+            dim_tokens=n_features,
+            dim_features=dim_features,
+            dim_feedforward=dim_feedforward,
+        )
+
+        # Pool across tokens then classify
+        self.head = nn.Sequential(
+            nn.LayerNorm(dim_features),
+            nn.Linear(dim_features, n_classes),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """x: (B, n_features). Returns logits (B, n_classes)."""
+        B = x.shape[0]
+        tokens = [emb(x[:, i:i+1]) for i, emb in enumerate(self.feature_embeddings)]
+        tokens = torch.stack(tokens, dim=1)  # (B, n_features, dim_features)
+        mixed = self.mixer(tokens)  # (B, n_features, dim_features)
+        pooled = mixed.mean(dim=1)  # (B, dim_features)
+        return self.head(pooled)
+
+
+# ============================================================
 # Factory
 # ============================================================
 
@@ -609,7 +926,17 @@ def build_tabular_model(model_name: str, n_features: int, n_classes: int,
         return GBDTWrapper(
             n_classes=n_classes, device=device, seed=seed, **kwargs
         )
+    elif model_name == "tabkan":
+        return TabKANWrapper(
+            n_features=n_features, n_classes=n_classes,
+            device=device, seed=seed, **kwargs
+        )
+    elif model_name == "tabmixer":
+        return TabMixerWrapper(
+            n_features=n_features, n_classes=n_classes,
+            device=device, seed=seed, **kwargs
+        )
     else:
         raise ValueError(f"Unknown model: {model_name}. "
                          f"Choose from: tabnet, tabm, ft_transformer, "
-                         f"extra_trees, gbdt")
+                         f"extra_trees, gbdt, tabkan, tabmixer")

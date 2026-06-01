@@ -48,7 +48,8 @@ FEATURE_COLS = [
     "ACCESS_SIZE", "ACCESS_TREND", "SIM_ACCESS", "SIM_TECH",
     "INVENT_DIVER", "INVENT_APPL", "ATTENT_SIZE",
 ]
-MODELS = ["tabnet", "tabm", "ft_transformer", "extra_trees", "gbdt"]
+MODELS = ["tabnet", "tabm", "ft_transformer", "extra_trees", "gbdt",
+          "tabkan", "tabmixer"]
 
 
 def load_top_subsets(silhouette_csv: Path, top_n: int) -> list:

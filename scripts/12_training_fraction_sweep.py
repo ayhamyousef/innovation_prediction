@@ -255,8 +255,8 @@ def main():
         "fractions": args.fractions,
         "models": args.models,
         "n_seeds": args.n_seeds,
-        "test_size": len(X_test),
-        "train_size_full": len(X_train_full),
+        "test_size": len(X_test_raw),
+        "train_size_full": len(X_train_raw),
     }, str(out_dir / "config.json"))
 
     # ============================================================

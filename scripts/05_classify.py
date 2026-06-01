@@ -89,7 +89,8 @@ def main():
     parser.add_argument("--models", nargs="+",
                         default=["tabnet", "tabm", "ft_transformer"],
                         choices=["tabnet", "tabm", "ft_transformer",
-                                 "extra_trees", "gbdt"])
+                                 "extra_trees", "gbdt",
+                                 "tabkan", "tabmixer"])
     parser.add_argument("--test-ratio", type=float, default=0.4,
                         help="Fraction for test set (default 0.4)")
     parser.add_argument("--val-ratio", type=float, default=0.1,
