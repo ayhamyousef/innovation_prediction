@@ -1,0 +1,27 @@
+{
+  "tag": "fae_k3",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "cluster_k": 3,
+  "fractions": [
+    0.01,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "models": [
+    "gbdt",
+    "tabm",
+    "ft_transformer",
+    "extra_trees",
+    "tabnet"
+  ],
+  "n_seeds": 1,
+  "test_size": 80684,
+  "train_size_full": 121026
+}

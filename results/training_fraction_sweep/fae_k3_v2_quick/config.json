@@ -1,0 +1,21 @@
+{
+  "tag": "fae_k3_v2_quick",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "cluster_k": 3,
+  "fractions": [
+    0.01,
+    0.1,
+    1.0
+  ],
+  "models": [
+    "tabkan",
+    "tabmixer"
+  ],
+  "n_seeds": 1,
+  "test_size": 80684,
+  "train_size_full": 121026
+}

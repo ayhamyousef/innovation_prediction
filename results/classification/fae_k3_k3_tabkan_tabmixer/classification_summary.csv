@@ -1,0 +1,3 @@
+model,accuracy,macro_f1,macro_precision,macro_recall
+tabkan,0.9999,0.9995,0.9991,0.9998
+tabmixer,0.9999,0.9997,1.0000,0.9995

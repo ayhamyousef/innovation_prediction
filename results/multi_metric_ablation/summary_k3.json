@@ -1,0 +1,29 @@
+{
+  "cluster_k": 3,
+  "subset_sizes": [
+    3
+  ],
+  "sample_size": 10000,
+  "fae_k3_rank": {
+    "fae_features": [
+      "SIM_TECH",
+      "ACCESS_SIZE",
+      "SIM_ACCESS"
+    ],
+    "silhouette": {
+      "value": 0.645605391076898,
+      "rank": 11,
+      "n_total": 35
+    },
+    "calinski_harabasz": {
+      "value": 244582.69051801055,
+      "rank": 1,
+      "n_total": 35
+    },
+    "davies_bouldin": {
+      "value": 0.5435184118234613,
+      "rank": 2,
+      "n_total": 35
+    }
+  }
+}
