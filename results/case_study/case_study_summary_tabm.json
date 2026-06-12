@@ -1,0 +1,13 @@
+{
+  "model": "tabm",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "n_classes": 3,
+  "test_accuracy": 0.9998512716275841,
+  "n_test": 80684,
+  "n_per_cluster": 8,
+  "seed": 42
+}
