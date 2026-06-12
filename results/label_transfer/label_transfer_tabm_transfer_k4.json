@@ -1,0 +1,20 @@
+{
+  "model": "tabm",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "feature_clusters_k": 3,
+  "trajectory_clusters_k": 4,
+  "trajectory_method": "euclidean_kmeans",
+  "trajectory_silhouette": 0.32428142763220874,
+  "chen_gbdt_roc_auc_reference": 0.728,
+  "transfer": {
+    "classifier_accuracy_on_own_labels": 0.9998512716275841,
+    "ari_predicted_vs_trajectory": 0.028256834073094983,
+    "nmi_predicted_vs_trajectory": 0.04451092532842301,
+    "ari_ourlabels_vs_trajectory": 0.028274423254915672,
+    "nmi_ourlabels_vs_trajectory": 0.04453028467400221
+  }
+}

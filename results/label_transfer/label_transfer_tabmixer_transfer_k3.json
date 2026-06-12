@@ -1,0 +1,30 @@
+{
+  "model": "tabmixer",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "feature_clusters_k": 3,
+  "trajectory_clusters_k": 3,
+  "trajectory_method": "euclidean_kmeans",
+  "trajectory_silhouette": 0.3719811697440424,
+  "chen_gbdt_roc_auc_reference": 0.728,
+  "transfer": {
+    "classifier_accuracy_on_own_labels": 0.9999380298448267,
+    "ari_predicted_vs_trajectory": 0.034201733878133245,
+    "nmi_predicted_vs_trajectory": 0.04768374224975538,
+    "ari_ourlabels_vs_trajectory": 0.03423558935598306,
+    "nmi_ourlabels_vs_trajectory": 0.047729216764196794,
+    "matched": {
+      "label_mapping": {
+        "1": 0,
+        "0": 1,
+        "2": 2
+      },
+      "accuracy": 0.48288384314114324,
+      "macro_f1": 0.4199346481472481,
+      "roc_auc_ovr_macro": 0.6320154068779034
+    }
+  }
+}
