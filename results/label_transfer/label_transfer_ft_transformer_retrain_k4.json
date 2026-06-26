@@ -1,0 +1,19 @@
+{
+  "model": "ft_transformer",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "feature_clusters_k": 3,
+  "trajectory_clusters_k": 4,
+  "trajectory_method": "euclidean_kmeans",
+  "trajectory_silhouette": 0.32428142763220874,
+  "chen_gbdt_roc_auc_reference": 0.728,
+  "retrain": {
+    "accuracy": 0.5005081552724208,
+    "macro_f1": 0.4287811191345225,
+    "roc_auc_ovr_macro": 0.7363515068346909,
+    "beats_chen_baseline": true
+  }
+}

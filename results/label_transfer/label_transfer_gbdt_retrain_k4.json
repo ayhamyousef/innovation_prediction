@@ -1,0 +1,19 @@
+{
+  "model": "gbdt",
+  "features": [
+    "SIM_TECH",
+    "ACCESS_SIZE",
+    "SIM_ACCESS"
+  ],
+  "feature_clusters_k": 3,
+  "trajectory_clusters_k": 4,
+  "trajectory_method": "euclidean_kmeans",
+  "trajectory_silhouette": 0.32428142763220874,
+  "chen_gbdt_roc_auc_reference": 0.728,
+  "retrain": {
+    "accuracy": 0.5053170393138664,
+    "macro_f1": 0.4295130375029721,
+    "roc_auc_ovr_macro": 0.7400314816075828,
+    "beats_chen_baseline": true
+  }
+}
