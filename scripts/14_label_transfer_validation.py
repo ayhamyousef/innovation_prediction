@@ -110,6 +110,9 @@ def main():
     parser.add_argument("--retrain", action="store_true",
                         help="Backup mode: retrain classifier on trajectory-shape "
                              "labels and evaluate normally.")
+    parser.add_argument("--tag", default=None,
+                        help="Optional suffix for the output filename, to avoid "
+                             "overwriting (e.g. 'all7' for the all-7-feature run).")
     parser.add_argument("--test-ratio", type=float, default=0.4)
     parser.add_argument("--val-ratio", type=float, default=0.1)
     parser.add_argument("--out-dir", default="results/label_transfer")
@@ -341,8 +344,9 @@ def main():
         }
 
     # ---- Save ----
-    tag = "retrain" if args.retrain else "transfer"
-    out_path = out_dir / f"label_transfer_{args.model}_{tag}_k{args.traj_k}.json"
+    mode = "retrain" if args.retrain else "transfer"
+    suffix = f"_{args.tag}" if args.tag else ""
+    out_path = out_dir / f"label_transfer_{args.model}_{mode}_k{args.traj_k}{suffix}.json"
     save_json(results, str(out_path))
     logger.info(f"\nSaved results to {out_path}")
 
