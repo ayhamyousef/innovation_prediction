@@ -1,0 +1,23 @@
+{
+  "model": "tabmixer",
+  "features": [
+    "ACCESS_SIZE",
+    "ACCESS_TREND",
+    "SIM_ACCESS",
+    "SIM_TECH",
+    "INVENT_DIVER",
+    "INVENT_APPL",
+    "ATTENT_SIZE"
+  ],
+  "feature_clusters_k": 3,
+  "trajectory_clusters_k": 4,
+  "trajectory_method": "euclidean_kmeans",
+  "trajectory_silhouette": 0.32428142763220874,
+  "chen_gbdt_roc_auc_reference": 0.728,
+  "retrain": {
+    "accuracy": 0.5963388032323633,
+    "macro_f1": 0.575155961921209,
+    "roc_auc_ovr_macro": 0.8244206413600479,
+    "beats_chen_baseline": true
+  }
+}
