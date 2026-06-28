@@ -35,33 +35,13 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.utils.helpers import load_config, setup_logging, set_seed
+from src.utils.plotting import set_paper_style, PALETTE
 
 
 FEATURE_COLS = [
     "ACCESS_SIZE", "ACCESS_TREND", "SIM_ACCESS", "SIM_TECH",
     "INVENT_DIVER", "INVENT_APPL", "ATTENT_SIZE",
 ]
-
-# Colorblind-friendly palette (Okabe-Ito)
-PALETTE = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#F0E442",
-           "#56B4E9", "#E69F00"]
-
-
-def set_paper_style():
-    plt.rcParams.update({
-        "font.family": "serif",
-        "font.size": 11,
-        "axes.labelsize": 12,
-        "axes.titlesize": 13,
-        "legend.fontsize": 10,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-        "figure.dpi": 120,
-        "savefig.dpi": 300,
-        "savefig.bbox": "tight",
-    })
 
 
 def save_fig(fig, out_path: Path, also_pdf: bool = True):
