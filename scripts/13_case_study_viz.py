@@ -110,12 +110,12 @@ def main():
     years = np.arange(1, window + 1)
 
     # Cluster MEDIAN trajectory (typical member; robust to the right-skew that
-    # makes the mean unrepresentative) + a robust per-cluster y-limit so a few
-    # extreme outliers do not blow up the shared scale.
+    # makes the mean unrepresentative). Panel y-limits are set per panel from
+    # the displayed example + its median (below), so every small multiple fills
+    # its axes. A row-shared 95th-percentile scale flattened most panels in a
+    # row whenever the random sample happened to include one fast-growth member.
     cluster_median = {c: np.median(trajectories[y == c], axis=0)
                       for c in range(n_classes)}
-    cluster_ylim = {c: float(np.percentile(trajectories[y == c][:, -1], 95)) * 1.1
-                    for c in range(n_classes)}
 
     # ---- Reproduce 05_classify split via indices ----
     idx = np.arange(n)
@@ -163,7 +163,6 @@ def main():
         pick = rng.choice(pool, min(ncol, len(pool)), replace=False)
         cmed = cluster_median[c]
         color = CLUSTER_COLORS[int(c)]
-        ytop = cluster_ylim[c]
         for j in range(ncol):
             ax = axes[r][j]
             if j >= len(pick):
@@ -171,14 +170,18 @@ def main():
                 continue
             li = pick[j]
             gi = idx_test[li]
+            traj = trajectories[gi]
             given, pred = int(given_test[li]), int(y_pred_test[li])
             correct = given == pred
             # cluster-median reference (typical member)
             ax.plot(years, cmed, ls=(0, (5, 2)), color=REF_COLOR, lw=1.1, zorder=1,
                     label="cluster median" if (r == 0 and j == 0) else None)
             # the example (solid, semantic cluster color, no area fill)
-            ax.plot(years, trajectories[gi], color=color, lw=1.8, zorder=2)
-            ax.set_ylim(0, ytop)            # shared, robust scale within the row
+            ax.plot(years, traj, color=color, lw=1.8, zorder=2)
+            # per-panel y-limit from this example + its median, so the SHAPE is
+            # always legible. Clusters differ in magnitude by design; the median
+            # reference inside each panel carries the scale comparison.
+            ax.set_ylim(0, 1.15 * max(float(traj.max()), float(cmed.max())))
             # error cue: red + BOLD title (bold survives greyscale; the cross
             # glyph is absent in Liberation Sans so weight carries the signal)
             ax.set_title(f"C{given}{ARROW}C{pred}", fontsize=8.5, pad=2,
