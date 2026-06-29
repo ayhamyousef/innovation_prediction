@@ -46,6 +46,23 @@ def fae_k3_features():
     return ["SIM_TECH", "ACCESS_SIZE", "SIM_ACCESS"]
 
 
+def _supxlabel(fig, text, **kw):
+    """Figure-level x label, with fallback for matplotlib < 3.4."""
+    fn = getattr(fig, "supxlabel", None)
+    if fn is not None:
+        fn(text, **kw)
+    else:
+        fig.text(0.5, 0.005, text, ha="center", **kw)
+
+
+def _supylabel(fig, text, **kw):
+    fn = getattr(fig, "supylabel", None)
+    if fn is not None:
+        fn(text, **kw)
+    else:
+        fig.text(0.005, 0.5, text, va="center", rotation="vertical", **kw)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/default.yaml")
@@ -160,7 +177,7 @@ def main():
                     s.set_edgecolor(PALETTE[1]); s.set_linewidth(1.4)
         axes[r][0].set_ylabel(f"Cluster {c}\ncumulative reuse", fontsize=9)
 
-    fig.supxlabel("Years since emergence", fontsize=10)
+    _supxlabel(fig, "Years since emergence", fontsize=10)
     fig.suptitle(
         f"Test-set technologies: given (k-means) vs predicted ({args.model}) "
         f"label.  Dashed = cluster mean.  Test accuracy {test_acc*100:.2f}%",
@@ -202,8 +219,8 @@ def main():
             ax.tick_params(labelsize=7)
             if jj == 0:
                 ax.legend(fontsize=6.5, loc="lower right")
-        fig.supxlabel("Years since emergence", fontsize=10)
-        fig.supylabel("Cumulative reuse count", fontsize=10)
+        _supxlabel(fig, "Years since emergence", fontsize=10)
+        _supylabel(fig, "Cumulative reuse count", fontsize=10)
         fig.suptitle(f"All misclassified test technologies "
                      f"({n_err} of {len(given_test)})", fontsize=10)
         save_fig(fig, out_dir / f"case_study_errors_{args.model}",
