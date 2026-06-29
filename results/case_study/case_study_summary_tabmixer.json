@@ -8,6 +8,7 @@
   "n_classes": 3,
   "test_accuracy": 0.9999380298448267,
   "n_test": 80684,
-  "n_per_cluster": 8,
+  "n_errors": 5,
+  "n_per_cluster": 5,
   "seed": 42
 }
