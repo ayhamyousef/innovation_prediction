@@ -30,7 +30,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.models.tabular_models import build_tabular_model
 from src.utils.helpers import load_config, setup_logging, set_seed
-from src.utils.plotting import set_paper_style, save_fig, PALETTE
+from src.utils.plotting import (
+    set_paper_style, save_fig, CLUSTER_COLORS, REF_COLOR, REF_DARK,
+    ERROR_COLOR, ARROW,
+)
 
 
 FEATURE_COLS = [
@@ -106,8 +109,12 @@ def main():
     window = trajectories.shape[1]
     years = np.arange(1, window + 1)
 
-    # Cluster mean trajectories (over all technologies) for the reference overlay
-    cluster_mean = {c: trajectories[y == c].mean(axis=0)
+    # Cluster MEDIAN trajectory (typical member; robust to the right-skew that
+    # makes the mean unrepresentative) + a robust per-cluster y-limit so a few
+    # extreme outliers do not blow up the shared scale.
+    cluster_median = {c: np.median(trajectories[y == c], axis=0)
+                      for c in range(n_classes)}
+    cluster_ylim = {c: float(np.percentile(trajectories[y == c][:, -1], 95)) * 1.1
                     for c in range(n_classes)}
 
     # ---- Reproduce 05_classify split via indices ----
@@ -154,8 +161,9 @@ def main():
     for r, c in enumerate(clusters):
         pool = np.where(given_test == c)[0]
         pick = rng.choice(pool, min(ncol, len(pool)), replace=False)
-        cmean = cluster_mean[c]
-        color = PALETTE[c % len(PALETTE)]
+        cmed = cluster_median[c]
+        color = CLUSTER_COLORS[int(c)]
+        ytop = cluster_ylim[c]
         for j in range(ncol):
             ax = axes[r][j]
             if j >= len(pick):
@@ -165,23 +173,26 @@ def main():
             gi = idx_test[li]
             given, pred = int(given_test[li]), int(y_pred_test[li])
             correct = given == pred
-            # cluster-mean reference
-            ax.plot(years, cmean, ls="--", color="#888888", lw=1.0, zorder=1)
-            # the example
+            # cluster-median reference (typical member)
+            ax.plot(years, cmed, ls=(0, (5, 2)), color=REF_COLOR, lw=1.1, zorder=1,
+                    label="cluster median" if (r == 0 and j == 0) else None)
+            # the example (solid, semantic cluster color, no area fill)
             ax.plot(years, trajectories[gi], color=color, lw=1.8, zorder=2)
-            ax.set_title(f"C{given}$\\rightarrow$C{pred}", fontsize=9,
-                         color="black" if correct else PALETTE[1], pad=2)
+            ax.set_ylim(0, ytop)            # shared, robust scale within the row
+            # error cue: red + BOLD title (bold survives greyscale; the cross
+            # glyph is absent in Liberation Sans so weight carries the signal)
+            ax.set_title(f"C{given}{ARROW}C{pred}", fontsize=8.5, pad=2,
+                         color="black" if correct else ERROR_COLOR,
+                         fontweight="normal" if correct else "bold")
             ax.tick_params(labelsize=7)
             if not correct:
                 for s in ax.spines.values():
-                    s.set_edgecolor(PALETTE[1]); s.set_linewidth(1.4)
-        axes[r][0].set_ylabel(f"Cluster {c}\ncumulative reuse", fontsize=9)
+                    s.set_edgecolor(ERROR_COLOR); s.set_linewidth(1.5)
+        axes[r][0].set_ylabel(f"Cluster {c}", fontsize=9, fontweight="bold")
 
+    axes[0][0].legend(loc="upper left", fontsize=7)
     _supxlabel(fig, "Years since emergence", fontsize=10)
-    fig.suptitle(
-        f"Test-set technologies: given (k-means) vs predicted ({args.model}) "
-        f"label.  Dashed = cluster mean.  Test accuracy {test_acc*100:.2f}%",
-        fontsize=10)
+    _supylabel(fig, "Cumulative reuse count", fontsize=10)
     save_fig(fig, out_dir / f"case_study_{args.model}",
              formats=("pdf", "png") if not args.no_pdf else ("png",))
     logger.info(f"Saved main figure: case_study_{args.model}")
@@ -206,23 +217,23 @@ def main():
             li = pick[jj]
             gi = idx_test[li]
             given, pred = int(given_test[li]), int(y_pred_test[li])
-            # overlay both the assigned-cluster mean (solid grey) and the
-            # predicted-cluster mean (dotted) to show the confusion
-            ax.plot(years, cluster_mean[given], ls="--", color="#999999", lw=1.0,
-                    label=f"C{given} mean")
-            ax.plot(years, cluster_mean[pred], ls=":", color="#444444", lw=1.0,
-                    label=f"C{pred} mean")
-            ax.plot(years, trajectories[gi], color=PALETTE[given % len(PALETTE)],
-                    lw=1.8, label="example")
-            ax.set_title(f"C{given}$\\rightarrow$C{pred}", fontsize=9,
-                         color=PALETTE[1], pad=2)
+            # assigned-cluster median = dashed REF grey; predicted-cluster
+            # median = dotted dark grey (two greys separated by value + dash)
+            ax.plot(years, cluster_median[given], ls=(0, (5, 2)), color=REF_COLOR,
+                    lw=1.1, label=f"C{given} median (assigned)")
+            ax.plot(years, cluster_median[pred], ls=":", color=REF_DARK, lw=1.1,
+                    label=f"C{pred} median (predicted)")
+            ax.plot(years, trajectories[gi], color=CLUSTER_COLORS[given],
+                    lw=1.8, label="this technology")
+            ax.set_title(f"C{given}{ARROW}C{pred}", fontsize=8.5, pad=2,
+                         color=ERROR_COLOR, fontweight="bold")
             ax.tick_params(labelsize=7)
             if jj == 0:
                 ax.legend(fontsize=6.5, loc="lower right")
         _supxlabel(fig, "Years since emergence", fontsize=10)
         _supylabel(fig, "Cumulative reuse count", fontsize=10)
-        fig.suptitle(f"All misclassified test technologies "
-                     f"({n_err} of {len(given_test)})", fontsize=10)
+        # (no in-figure title; the "{n_err} of {n_test} misclassified" statement
+        #  and the dashed/dotted legend belong in the LaTeX caption)
         save_fig(fig, out_dir / f"case_study_errors_{args.model}",
                  formats=("pdf", "png") if not args.no_pdf else ("png",))
         logger.info(f"Saved error figure: case_study_errors_{args.model}")

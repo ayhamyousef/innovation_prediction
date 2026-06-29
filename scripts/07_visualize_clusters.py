@@ -35,7 +35,18 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.utils.helpers import load_config, setup_logging, set_seed
-from src.utils.plotting import set_paper_style, PALETTE
+from src.utils.plotting import (
+    set_paper_style, CLUSTER_COLORS, CLUSTER_LS, CLUSTER_MARKER,
+    REF_COLOR, REF_DARK, BAND_ALPHA, BOX_ALPHA, SCATTER_ALPHA,
+)
+
+# Short semantic descriptors for cluster legends/headers
+CLUSTER_DESC = {0: "moderate growth", 1: "fast growth", 2: "early plateau"}
+
+
+def _panel_label(ax, letter):
+    ax.text(-0.16, 1.04, f"({letter})", transform=ax.transAxes,
+            fontweight="bold", fontsize=9, va="bottom", ha="left")
 
 
 FEATURE_COLS = [
@@ -68,52 +79,78 @@ def plot_pca_scatter(X_scaled, labels, feature_names, out_path, also_pdf=True,
     Z = pca.fit_transform(X_plot)
     var = pca.explained_variance_ratio_
 
-    fig, ax = plt.subplots(figsize=(5.2, 4.2))
-    for c in sorted(np.unique(lab_plot)):
+    fig, ax = plt.subplots(figsize=(3.5, 3.3), layout="constrained")
+    # Plot in descending size order so the minority cluster (C2) sits ON TOP and
+    # is not buried; distinct marker SHAPE per cluster makes it greyscale-safe.
+    for c in sorted(np.unique(lab_plot), key=lambda k: -true_sizes[int(k)]):
         mask = lab_plot == c
-        ax.scatter(Z[mask, 0], Z[mask, 1], s=5, alpha=0.4,
-                   color=PALETTE[c % len(PALETTE)],
-                   label=f"Cluster {c} ($n={true_sizes[int(c)]:,}$)",
+        ax.scatter(Z[mask, 0], Z[mask, 1], s=5, alpha=SCATTER_ALPHA,
+                   color=CLUSTER_COLORS[int(c)], marker=CLUSTER_MARKER[int(c)],
+                   label=f"Cluster {c} (n={true_sizes[int(c)]:,})",
                    linewidths=0, rasterized=True)
     ax.set_xlabel(f"PC1 ({var[0]*100:.1f}% of variance)")
     ax.set_ylabel(f"PC2 ({var[1]*100:.1f}% of variance)")
-    leg = ax.legend(markerscale=2.5, loc="upper right", handletextpad=0.3)
+    ax.grid(axis="both", alpha=0.4)        # the one figure with a full XY grid
+    # legend ordered C0,C1,C2 with TRUE sizes; opaque handles; lower-left gap
+    handles, labels_ = ax.get_legend_handles_labels()
+    order = sorted(range(len(labels_)), key=lambda i: labels_[i])
+    leg = ax.legend([handles[i] for i in order], [labels_[i] for i in order],
+                    markerscale=2.5, loc="lower left", handletextpad=0.3)
     for lh in leg.legend_handles:
         lh.set_alpha(1.0)
     save_fig(fig, out_path, also_pdf)
 
 
 def plot_feature_boxplots(tech_df, feature_names, out_path, also_pdf=True):
-    """Per-feature boxplot broken down by cluster."""
+    """Per-feature distribution by cluster. Continuous features -> boxplot;
+    low-cardinality ordinal features (e.g. SIM_TECH, 4 values) -> grouped
+    proportion bars (a boxplot of 4 discrete values is degenerate)."""
     n = len(feature_names)
     cols = min(n, 3)
     rows = (n + cols - 1) // cols
-    fig, axes = plt.subplots(rows, cols, figsize=(4.2 * cols, 3.2 * rows),
-                             squeeze=False)
+    fig, axes = plt.subplots(rows, cols, figsize=(2.4 * cols, 2.5 * rows),
+                             squeeze=False, layout="constrained")
     clusters = sorted(tech_df["cluster"].unique())
-    box_colors = [PALETTE[c % len(PALETTE)] for c in clusters]
+    box_colors = [CLUSTER_COLORS[int(c)] for c in clusters]
 
     for i, feat in enumerate(feature_names):
         ax = axes[i // cols][i % cols]
-        data = [tech_df.loc[tech_df["cluster"] == c, feat].values
-                for c in clusters]
-        bp = ax.boxplot(data, patch_artist=True, showfliers=False,
-                        widths=0.6, medianprops={"color": "black", "linewidth": 1.2},
-                        whiskerprops={"color": "#333333"},
-                        capprops={"color": "#333333"},
-                        boxprops={"edgecolor": "#333333"})
-        for patch, color in zip(bp["boxes"], box_colors):
-            patch.set_facecolor(color)
-            patch.set_alpha(0.75)
-        ax.set_xticklabels([f"C{c}" for c in clusters])
-        ax.set_title(feat)
-        ax.set_ylabel("Feature value")
+        nuniq = tech_df[feat].nunique()
+        if nuniq <= 6:
+            # grouped proportion bars over the discrete levels
+            levels = sorted(tech_df[feat].unique())
+            xl = np.arange(len(levels))
+            w = 0.8 / len(clusters)
+            for ci, c in enumerate(clusters):
+                sub = tech_df.loc[tech_df["cluster"] == c, feat]
+                props = [(sub == lv).mean() for lv in levels]
+                ax.bar(xl + (ci - (len(clusters) - 1) / 2) * w, props, w,
+                       color=CLUSTER_COLORS[int(c)], alpha=0.85,
+                       edgecolor="white", linewidth=0.3, label=f"C{c}")
+            ax.set_xticks(xl)
+            ax.set_xticklabels([f"{lv:g}" for lv in levels])
+            ax.set_xlabel(f"{feat} value")
+            ax.set_ylabel("Proportion")
+            if i == 0:
+                ax.legend(title=None, fontsize=7, loc="upper center", ncol=3)
+        else:
+            data = [tech_df.loc[tech_df["cluster"] == c, feat].values
+                    for c in clusters]
+            bp = ax.boxplot(data, patch_artist=True, showfliers=False,
+                            widths=0.6,
+                            medianprops={"color": "black", "linewidth": 1.2},
+                            whiskerprops={"color": "#333333"},
+                            capprops={"color": "#333333"},
+                            boxprops={"edgecolor": "#333333"})
+            for patch, color in zip(bp["boxes"], box_colors):
+                patch.set_facecolor(color)
+                patch.set_alpha(BOX_ALPHA)
+            ax.set_xticklabels([f"C{c}" for c in clusters])
+            ax.set_ylabel(feat)
+        _panel_label(ax, chr(ord("a") + i))
 
-    # Hide unused axes
     for j in range(n, rows * cols):
         axes[j // cols][j % cols].set_visible(False)
-
-    fig.tight_layout()
     save_fig(fig, out_path, also_pdf)
 
 
@@ -121,11 +158,10 @@ def plot_mean_trajectories(tech_df, trajectories, valid_idx, out_path,
                            also_pdf=True):
     """Mean cumulative-reuse curve per cluster with 25-75 percentile band."""
     clusters = sorted(tech_df["cluster"].unique())
-    fig, ax = plt.subplots(figsize=(6.5, 4.5))
+    fig, ax = plt.subplots(figsize=(3.5, 2.8), layout="constrained")
     window = trajectories.shape[1]
     years = np.arange(1, window + 1)
 
-    # Map tech_df index -> row in trajectories (valid_idx is positional)
     traj = trajectories
     for c in clusters:
         mask = (tech_df["cluster"].values == c)
@@ -135,13 +171,15 @@ def plot_mean_trajectories(tech_df, trajectories, valid_idx, out_path,
         mean = traj_c.mean(axis=0)
         p25 = np.percentile(traj_c, 25, axis=0)
         p75 = np.percentile(traj_c, 75, axis=0)
-        color = PALETTE[c % len(PALETTE)]
-        ax.fill_between(years, p25, p75, alpha=0.16, color=color, linewidth=0)
-        ax.plot(years, mean, color=color, lw=2.0,
-                label=f"Cluster {c} ($n={len(traj_c):,}$)")
+        color = CLUSTER_COLORS[int(c)]
+        ax.fill_between(years, p25, p75, alpha=BAND_ALPHA, color=color, linewidth=0)
+        # color + distinct line style => greyscale-safe second channel
+        ax.plot(years, mean, color=color, lw=2.0, linestyle=CLUSTER_LS[int(c)],
+                label=f"C{c} {CLUSTER_DESC[int(c)]} (n={len(traj_c):,})")
     ax.set_xlabel("Years since emergence")
     ax.set_ylabel("Cumulative reuse count")
     ax.set_xlim(1, window)
+    ax.set_xticks([1, 5, 10, 15, 20])
     ax.legend(loc="upper left")
     save_fig(fig, out_path, also_pdf)
 
@@ -155,7 +193,8 @@ def plot_example_trajectories(tech_df, trajectories, feature_names, out_path,
     years = np.arange(1, window + 1)
 
     fig, axes = plt.subplots(1, len(clusters),
-                             figsize=(2.7 * len(clusters), 3.0), sharey=True)
+                             figsize=(2.4 * len(clusters), 2.4), sharey=True,
+                             layout="constrained")
     if len(clusters) == 1:
         axes = [axes]
 
@@ -168,19 +207,20 @@ def plot_example_trajectories(tech_df, trajectories, feature_names, out_path,
         centroid = X_c.mean(axis=0)
         dists = np.linalg.norm(X_c - centroid, axis=1)
         nearest = np.argsort(dists)[:n_examples]
-        color = PALETTE[c % len(PALETTE)]
+        color = CLUSTER_COLORS[int(c)]
         for i in nearest:
-            ax.plot(years, traj_c[i], color=color, alpha=0.5, lw=1.2)
-        # Overlay the cluster mean
-        ax.plot(years, traj_c.mean(axis=0), color="black", lw=1.8,
+            ax.plot(years, traj_c[i], color=color, alpha=0.55, lw=1.0)
+        # cluster mean = neutral reference grey (REF, distinct from the error-fig dark grey)
+        ax.plot(years, traj_c.mean(axis=0), color=REF_COLOR, lw=2.0,
                 linestyle="--", label="cluster mean")
-        ax.set_title(f"Cluster {c} ($n={int(mask.sum()):,}$)")
+        ax.set_title(f"Cluster {c} ({CLUSTER_DESC[int(c)]})")
         ax.set_xlabel("Years since emergence")
         ax.set_xlim(1, window)
-        if ki == 0:                      # single legend, leftmost panel only
+        ax.set_xticks([1, 10, 20])
+        _panel_label(ax, chr(ord("a") + ki))
+        if ki == 0:
             ax.legend(loc="upper left")
     axes[0].set_ylabel("Cumulative reuse count")
-    fig.tight_layout()
     save_fig(fig, out_path, also_pdf)
 
 
