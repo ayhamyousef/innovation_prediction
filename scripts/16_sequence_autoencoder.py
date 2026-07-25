@@ -182,12 +182,19 @@ def run_one(traj_norm, ref_labels, latent_dim, num_layers, l1, k,
         if not quiet and (ep + 1) % max(1, epochs // 5) == 0:
             print(f"    epoch {ep+1:3d}  loss {tot/n:.4f}")
 
-    # extract latent + reconstruction error
+    # extract latent + reconstruction error, IN BATCHES. A full-batch forward over
+    # the whole corpus (e.g. 201k sequences) OOMs the GPU; batch it like training.
     model.eval()
+    Z_parts, recon_sum, elem = [], 0.0, 0
     with torch.no_grad():
-        xhat, Z = model(X)
-        recon = mse(xhat, X).item()
-    Z = Z.cpu().numpy()
+        for s in range(0, n, bs):
+            xb = X[s:s + bs]
+            xhat, z = model(xb)
+            recon_sum += nn.functional.mse_loss(xhat, xb, reduction="sum").item()
+            elem += xb.numel()
+            Z_parts.append(z.cpu().numpy())
+    recon = recon_sum / elem
+    Z = np.concatenate(Z_parts, axis=0)
 
     # cluster the latent
     km = KMeans(n_clusters=k, n_init=10, random_state=seed).fit(Z)
@@ -197,7 +204,12 @@ def run_one(traj_norm, ref_labels, latent_dim, num_layers, l1, k,
     thr = 0.05 * (np.abs(Z).max() + 1e-9)
     sparsity = float((np.abs(Z) < thr).mean())
 
-    sil = float(silhouette_score(Z, pred)) if k < len(Z) else float("nan")
+    # silhouette on a random sample; full pairwise is O(n^2), intractable at ~200k
+    sil = float("nan")
+    if k < len(Z):
+        sil = float(silhouette_score(Z, pred,
+                                     sample_size=min(10000, len(Z)),
+                                     random_state=seed))
     out = {
         "latent_dim": latent_dim, "layers": num_layers, "l1": l1, "k": k,
         "recon_mse": round(recon, 5), "silhouette_Z": round(sil, 4),
