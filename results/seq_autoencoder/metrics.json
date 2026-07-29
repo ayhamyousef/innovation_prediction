@@ -1,11 +1,11 @@
 {
-  "latent_dim": 16,
+  "latent_dim": 8,
   "layers": 1,
-  "l1": 0.0,
+  "l1": 0.01,
   "k": 3,
-  "recon_mse": 0.00292,
-  "silhouette_Z": 0.368,
-  "sparsity_frac": 0.246,
-  "ARI_vs_ref": 0.0399,
-  "NMI_vs_ref": 0.0505
+  "recon_mse": 0.00398,
+  "silhouette_Z": 0.4747,
+  "sparsity_frac": 0.892,
+  "ARI_vs_ref": 0.0425,
+  "NMI_vs_ref": 0.0513
 }
