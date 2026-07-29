@@ -94,6 +94,32 @@ class GRUSeqAutoencoder(nn.Module):
 # ----------------------------------------------------------------------
 # Data
 # ----------------------------------------------------------------------
+def plot_cluster_shapes(traj_raw, pred, k, out_path):
+    """Median (+IQR band) raw trajectory per learned cluster. This is the real test
+    of whether the sequence clustering captured distinct, recognizable shapes."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    T = traj_raw.shape[1]
+    years = np.arange(1, T + 1)
+    fig, ax = plt.subplots(figsize=(6.0, 4.0), layout="constrained")
+    for c in range(k):
+        m = traj_raw[pred == c]
+        if len(m) == 0:
+            continue
+        med = np.median(m, axis=0)
+        q1, q3 = np.percentile(m, [25, 75], axis=0)
+        line, = ax.plot(years, med, lw=2, label=f"cluster {c} (n={len(m):,})")
+        ax.fill_between(years, q1, q3, color=line.get_color(), alpha=0.15, linewidth=0)
+    ax.set_xlabel("Years since emergence")
+    ax.set_ylabel("Cumulative reuse count")
+    ax.set_title("Learned sequence clusters: median trajectory (IQR band)")
+    ax.legend()
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    print(f"  saved cluster-shape figure: {out_path}")
+
+
 def normalize_trajectories(traj, mode):
     """traj: (n, T). Shape-focused normalization so clustering sees pattern not scale."""
     traj = traj.astype(np.float32)
@@ -242,6 +268,8 @@ def main():
                     help="subsample this many trajectories (for quick runs)")
     ap.add_argument("--grid", action="store_true",
                     help="run {1,3 layers} x {L1 0, 1e-2} x {dim 8,16,32}")
+    ap.add_argument("--plot", action="store_true",
+                    help="single run: save median trajectory per learned cluster")
     ap.add_argument("--out-dir", default="results/seq_autoencoder")
     args = ap.parse_args()
 
@@ -295,6 +323,10 @@ def main():
         np.save(out_dir / "cluster_labels.npy", pred)
         json.dump(m, open(out_dir / "metrics.json", "w"), indent=2)
         print(f"Saved latent + labels + metrics to {out_dir}/")
+        if args.plot:
+            plot_cluster_shapes(traj, pred, args.k,
+                                out_dir / f"cluster_shapes_dim{args.latent_dim}"
+                                f"_l{args.layers}_l1{args.l1}.png")
 
 
 if __name__ == "__main__":
