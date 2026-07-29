@@ -1,0 +1,134 @@
+[
+  {
+    "latent_dim": 8,
+    "layers": 1,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00321,
+    "silhouette_Z": 0.3491,
+    "sparsity_frac": 0.188,
+    "ARI_vs_ref": 0.0409,
+    "NMI_vs_ref": 0.0494
+  },
+  {
+    "latent_dim": 16,
+    "layers": 1,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00292,
+    "silhouette_Z": 0.368,
+    "sparsity_frac": 0.246,
+    "ARI_vs_ref": 0.0399,
+    "NMI_vs_ref": 0.0505
+  },
+  {
+    "latent_dim": 32,
+    "layers": 1,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00269,
+    "silhouette_Z": 0.3876,
+    "sparsity_frac": 0.221,
+    "ARI_vs_ref": 0.0428,
+    "NMI_vs_ref": 0.0522
+  },
+  {
+    "latent_dim": 8,
+    "layers": 1,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00398,
+    "silhouette_Z": 0.4747,
+    "sparsity_frac": 0.892,
+    "ARI_vs_ref": 0.0425,
+    "NMI_vs_ref": 0.0513
+  },
+  {
+    "latent_dim": 16,
+    "layers": 1,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00312,
+    "silhouette_Z": 0.4419,
+    "sparsity_frac": 0.927,
+    "ARI_vs_ref": 0.0441,
+    "NMI_vs_ref": 0.0523
+  },
+  {
+    "latent_dim": 32,
+    "layers": 1,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00351,
+    "silhouette_Z": 0.3895,
+    "sparsity_frac": 0.912,
+    "ARI_vs_ref": 0.0401,
+    "NMI_vs_ref": 0.0482
+  },
+  {
+    "latent_dim": 8,
+    "layers": 3,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00225,
+    "silhouette_Z": 0.3821,
+    "sparsity_frac": 0.176,
+    "ARI_vs_ref": 0.0379,
+    "NMI_vs_ref": 0.0483
+  },
+  {
+    "latent_dim": 16,
+    "layers": 3,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00172,
+    "silhouette_Z": 0.3637,
+    "sparsity_frac": 0.198,
+    "ARI_vs_ref": 0.0372,
+    "NMI_vs_ref": 0.0493
+  },
+  {
+    "latent_dim": 32,
+    "layers": 3,
+    "l1": 0.0,
+    "k": 3,
+    "recon_mse": 0.00123,
+    "silhouette_Z": 0.3634,
+    "sparsity_frac": 0.221,
+    "ARI_vs_ref": 0.04,
+    "NMI_vs_ref": 0.0532
+  },
+  {
+    "latent_dim": 8,
+    "layers": 3,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00189,
+    "silhouette_Z": 0.321,
+    "sparsity_frac": 0.724,
+    "ARI_vs_ref": 0.0408,
+    "NMI_vs_ref": 0.0517
+  },
+  {
+    "latent_dim": 16,
+    "layers": 3,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00161,
+    "silhouette_Z": 0.3331,
+    "sparsity_frac": 0.902,
+    "ARI_vs_ref": 0.0416,
+    "NMI_vs_ref": 0.0524
+  },
+  {
+    "latent_dim": 32,
+    "layers": 3,
+    "l1": 0.01,
+    "k": 3,
+    "recon_mse": 0.00109,
+    "silhouette_Z": 0.3314,
+    "sparsity_frac": 0.942,
+    "ARI_vs_ref": 0.0375,
+    "NMI_vs_ref": 0.0492
+  }
+]
