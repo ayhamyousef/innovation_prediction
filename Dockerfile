@@ -17,10 +17,15 @@ COPY src/ src/
 COPY scripts/ scripts/
 
 # Data / output volumes
-RUN mkdir -p data/raw data/processed data/cache models/runs
+RUN mkdir -p data/raw data/processed data/cache results
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
+# No default stage: the pipeline runs in the order given in the README, and each
+# stage is selected explicitly, e.g.
+#   docker run --rm -e ODP_API_KEY=... -v "$PWD/data:/app/data" IMAGE \
+#     scripts/01_fetch_data.py --start-year 2002 --end-year 2022
+# docker-compose.yml defines one service per stage.
 ENTRYPOINT ["python"]
-CMD ["scripts/05_train_transformer.py"]
+CMD ["--version"]

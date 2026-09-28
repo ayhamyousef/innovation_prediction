@@ -1,40 +1,28 @@
-# Core ML
-torch>=2.0.0
-transformers>=4.35.0
-tokenizers>=0.15.0
-
-# Data & Scientific Computing
+# Core
 numpy>=1.24.0
 pandas>=1.5.0
 scipy>=1.10.0
 scikit-learn>=1.3.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
 
-# Time-series clustering
+# Data fetching (USPTO Open Data Portal)
+requests>=2.31.0
+tqdm>=4.65.0
+
+# Trajectory clustering (src/data/clustering.py uses DTW k-means)
 tslearn>=0.6.0
 dtaidistance>=2.3.0
 
-# API & Data Fetching
-requests>=2.31.0
-aiohttp>=3.9.0
-tqdm>=4.65.0
+# Deep models. torch is required for the GRU sequence autoencoder and for the
+# four deep tabular classifiers below.
+torch>=2.0.0
+pytorch-tabnet>=4.0.0     # TabNet
+tabkan                    # TabKAN (Chebyshev-KAN mixer)
+TabMixer                  # TabMixer
+# TabM and FT-Transformer are implemented directly in src/models/tabular_models.py
+# and need no extra package.
 
-# NLP baselines
-joblib>=1.3.0
-
-# Tabular DL models
-pytorch-tabnet>=4.0.0
-
-# Config & Logging
-pyyaml>=6.0
-python-dotenv>=1.0.0
-wandb>=0.16.0
-
-# Visualization & Analysis
+# Figures
 matplotlib>=3.7.0
 seaborn>=0.12.0
-
-# Imbalanced learning
-imbalanced-learn>=0.11.0
-
-# Reproducibility
-jsonlines>=4.0.0

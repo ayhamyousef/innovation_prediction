@@ -1,36 +1,60 @@
-version: "3.9"
+# One service per pipeline stage, in the order given in the README. Run them
+# individually, e.g. `docker compose run --rm feature-selection`, since each
+# stage consumes the previous stage's output.
+#
+# The stages that train torch models (classify, sequence-autoencoder,
+# gru-downstream) declare a GPU reservation. Remove the `deploy:` block to run
+# them on CPU; they work either way, more slowly.
 
 services:
-  # Step 1: Fetch USPTO patent data via ODP API
+  # Stage 01: fetch USPTO patent records via the Open Data Portal API
   fetch-data:
     build: .
-    command: ["scripts/01_fetch_data.py", "--start-year", "2002", "--end-year", "2022", "--max-pages", "5"]
+    command: ["scripts/01_fetch_data.py", "--start-year", "2002", "--end-year", "2022"]
     volumes:
       - ./data:/app/data
     environment:
       - ODP_API_KEY=${ODP_API_KEY}
 
-  # Step 2: Extract IPC-pair technologies + 7 features + trajectories
+  # Stage 02: novel technologies, reuse trajectories, the seven features
   build-trajectories:
     build: .
     command: ["scripts/02_build_trajectories.py"]
     volumes:
       - ./data:/app/data
+      - ./results:/app/results
 
-  # Step 3: DTW + k-means clustering (k=4)
-  cluster:
+  # Stage 03: trajectory-shape labels
+  cluster-patterns:
     build: .
     command: ["scripts/03_cluster_patterns.py"]
     volumes:
       - ./data:/app/data
+      - ./results:/app/results
 
-  # Step 4: Train BERT-based transformer classifier
-  train-transformer:
+  # Stage 04: FAE unsupervised feature selection, K in {3,4,5}
+  feature-selection:
     build: .
-    command: ["scripts/05_train_transformer.py"]
+    command: ["scripts/04_feature_selection.py"]
     volumes:
       - ./data:/app/data
-      - ./models:/app/models
+      - ./results:/app/results
+
+  # Stage 04b: emergence-profile labels from the selected features
+  recluster:
+    build: .
+    command: ["scripts/04b_recluster.py"]
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+
+  # Stage 05: the seven tabular classifiers
+  classify:
+    build: .
+    command: ["scripts/05_classify.py"]
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
     deploy:
       resources:
         reservations:
@@ -39,21 +63,36 @@ services:
               count: 1
               capabilities: [gpu]
 
-  # Step 5: Train all baseline models (TF-IDF+LR, metadata-only, combined)
-  train-baselines:
+  # Stage 06: exhaustive feature-subset ablation
+  ablation:
     build: .
-    command: ["scripts/06_train_baselines.py"]
+    command: ["scripts/06_ablation_subsets.py"]
     volumes:
       - ./data:/app/data
-      - ./models:/app/models
+      - ./results:/app/results
 
-  # Step 6: Run ablation studies
-  ablations:
+  # Stage 16: GRU sequence autoencoder, sequence-based labels
+  sequence-autoencoder:
     build: .
-    command: ["scripts/07_run_ablations.py", "--variants", "text_only,metadata_text,length_128,length_256,small_model"]
+    command: ["scripts/16_sequence_autoencoder.py"]
     volumes:
       - ./data:/app/data
-      - ./models:/app/models
+      - ./results:/app/results
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Stage 17: cluster-count sweep and downstream prediction of the sequence labels
+  gru-downstream:
+    build: .
+    command: ["scripts/17_gru_ksweep_downstream.py"]
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
     deploy:
       resources:
         reservations:
