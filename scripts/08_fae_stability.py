@@ -2,9 +2,9 @@
 """
 08_fae_stability.py — Test FAE selection stability under bootstrap subsampling.
 
-This is the central test of FAE's claimed contribution per Dr. Cheng (2026-04-22):
-"FAE is designed to have algorithmic stability... if one or some of examples
-are added or deleted, the results would not change much."
+FAE is claimed to be algorithmically stable: adding or removing a few examples
+should not change which features it selects. That claim is central to using it as
+a selection method, and this script tests it directly rather than assuming it.
 
 For each (K, fraction) combination, run FAE multiple times on independently
 bootstrapped subsamples of the data and record which features were selected.

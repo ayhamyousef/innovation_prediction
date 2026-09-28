@@ -3,8 +3,9 @@
 09_multi_metric_ablation.py — Re-evaluate size-3 subsets with multiple
 clustering metrics.
 
-Per Dr. Cheng (2026-04-22): silhouette is one of many clustering metrics.
-If FAE's pick is best across multiple metrics, the claim is robust.
+Silhouette is one of several internal validity criteria, and they do not always
+agree. If FAE's subset ranks well across all of them the result is robust; if the
+criteria disagree, that disagreement is itself worth reporting.
 
 Computes for each subset:
   - Silhouette (sampled, sample_size=10000 by default for speed)

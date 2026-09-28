@@ -1,121 +1,157 @@
-# Innovation Prediction from Patents
+# Learning and predicting patent technology reuse trajectories
 
-Pipeline for predicting technology trajectory patterns from USPTO patent data.
-Extends Chen et al. (2025, Scientometrics) by adding unsupervised feature
-selection (FAE) and modern tabular classifiers.
+Code and derived results for a study of how the long-term reuse of a newly emerged patent
+technology relates to information observable at the moment it emerges.
 
-## What this project does
+A technology is a pairing of two six-digit IPC codes. A technology is novel in the year that
+pairing first appears on a patent. Its reuse trajectory is the cumulative count of later
+inventions that repeat the pairing, over a twenty-year window. From USPTO records for 2002 to
+2022 we assemble 201,710 novel technologies that accumulate at least twenty reuses, and
+describe each by seven features computed in its emergence year.
 
-A technology is defined as a pairwise IPC-code combination at the 6-digit
-level. A novel technology is a first-time combination. Its cumulative reuse
-over a 20-year window forms a trajectory. We cluster technologies into a
-small number of growth-pattern groups based on 7 features computed at the
-technology's emergence year, then train classifiers to predict the cluster
-from those features.
+No reuse-pattern labels exist in advance, so they have to be constructed, and this study treats
+that construction as the substantive question rather than as a preliminary. Labels are built
+along two separate routes.
 
-The pipeline has four steps:
+The **sequence-based route** clusters the reuse trajectories themselves, in the latent space of
+a GRU autoencoder trained to reconstruct them. Labels from this route depend only on how reuse
+unfolded and on no hand-crafted quantity, so predicting them from emergence-time features is a
+prediction problem with a genuinely external target.
 
-1. FAE feature selection. Pick K of the 7 features unsupervised.
-2. Cluster on the selected features with k-means.
-3. Stratified 60/40 train/test split, 90/10 train/val within train.
-4. Classify with one or more tabular models.
+The **emergence-profile route** selects among the seven features with a Fractal Autoencoder and
+clusters the selected features directly. Labels from this route describe a technology at birth.
+Recovering them from those same features is a consistency check rather than a forecast, and the
+near-perfect accuracy it produces should be read as such.
 
-## How this differs from Chen et al. (2025)
+The two partitions agree only marginally above chance, at an Adjusted Rand Index near 0.04.
+That disagreement is itself one of the results: a partition of emergence-time covariates is not
+a reuse-pattern taxonomy, although the two are often treated as interchangeable.
 
-| Aspect | Chen et al. | This project |
-|---|---|---|
-| Data source | PATSTAT (EPO) | USPTO via ODP API |
-| Time range | 1995 to 2020 | 2002 to 2022 |
-| Feature selection | none | FAE (Wu and Cheng, AAAI 2021) |
-| Clustering | DTW k-means, k=4 | Euclidean k-means on selected features |
-| Classification | GBDT | TabNet, TabM, FT-Transformer, plus GBDT and ExtraTrees for comparison |
-| Evaluation | ROC-AUC, cross-entropy | Accuracy, macro-F1, plus reconstruction MSE for FAE eval |
+## Repository layout
 
-## The 7 features
+    config/         pipeline configuration
+    src/
+      data/         Open Data Portal client, technology extraction, feature computation
+      models/       FAE, the GRU sequence autoencoder, and the seven tabular classifiers
+      utils/        shared helpers
+    scripts/        numbered pipeline stages and analyses, run in order
+    results/        derived metrics, summary tables and figures
 
-From Chen et al. (Eqs. 3-9):
+## Requirements
+
+Python 3.10 or later. Install dependencies with `pip install -r requirements.txt`. A
+`Dockerfile` and `docker-compose.yml` are provided for a pinned environment.
+
+Fetching patent records requires a USPTO Open Data Portal API key, supplied through the
+environment:
+
+    export ODP_API_KEY=your_key_here
+
+The key is read from the environment. It is never written to disk or to configuration.
+
+## Reproducing the study
+
+Raw patent records are not versioned here. They are public, and stage 01 retrieves them.
+Expect the fetch to take several hours and to produce several gigabytes.
+
+    python scripts/01_fetch_data.py --start-year 2002 --end-year 2022
+    python scripts/02_build_trajectories.py     # technologies, trajectories, seven features
+    python scripts/03_cluster_patterns.py       # trajectory-shape labels
+    python scripts/04_feature_selection.py      # FAE selection, K in {3,4,5}
+    python scripts/04b_recluster.py             # emergence-profile labels
+    python scripts/05_classify.py               # the seven tabular classifiers
+    python scripts/06_ablation_subsets.py       # exhaustive feature-subset ablation
+    python scripts/16_sequence_autoencoder.py   # GRU autoencoder, sequence-based labels
+    python scripts/17_gru_ksweep_downstream.py  # cluster-count sweep and downstream prediction
+
+Stages 07 through 15 produce the supporting analyses and the figures. Stages 18, 21 and 23
+through 26 are the analyses added during revision, described in the next section.
+`run_experiments.py` orchestrates the full classification matrix.
+
+Every stage takes its seed from the configuration and defaults to 42. Feature selection and
+clustering are fitted on the full corpus, because they constitute label construction; the
+stratified 60/40 train and test split is applied only at the classification stage.
+
+## Analyses added during revision
+
+These back specific claims and can be run once the pipeline above has completed.
+
+`scripts/23_gru_per_class_metrics.py` reports per-class precision, recall, F1, ROC-AUC and
+average precision for the sequence-based labels. It establishes that the smallest of the three
+classes is the best ranked despite having the lowest F1, so its low F1 is a decision-threshold
+effect rather than a limit on identifying the class.
+
+`scripts/24_feature_truncation_audit.py` quantifies a defect in the corpus. `ACCESS_SIZE` and
+`ACCESS_TREND` are computed over the five years preceding emergence, but the patent record
+assembled here begins in 2002. For technologies emerging in 2002 that window falls entirely
+outside the data and `ACCESS_SIZE` is zero for all 26,471 of them; the feature stays
+undercounted until the 2007 cohort, the first with a fully covered window. Affected cohorts
+total 137,118 of 201,710 technologies. The script reports what this does to the cluster
+contrasts, with and without the affected cohorts.
+
+`scripts/25_recency_shortcut_check.py` asks how much of the predictability of the
+sequence-based labels follows from emergence cohort rather than from the features. It compares
+the seven features against emergence year alone, and against the feature set with the two
+truncated features removed.
+
+`scripts/26_censoring_free_robustness.py` removes right-censoring rather than measuring it.
+Restricting to technologies that emerged in 2012 or earlier and truncating every trajectory to
+ten years leaves a subcohort in which all 179,459 members are observed for exactly the same
+span. Setting `MAX_COHORT=2022` includes the censored cohorts at the same horizon, which
+isolates the effect of censoring from the effect of the horizon itself.
+
+## Known limitations of the data
+
+Two are worth stating plainly for anyone building on this.
+
+The corpus is right-censored. Only 34.2 percent of technologies are observed for the full
+twenty-year window, and trajectories of later cohorts are flat beyond the 2022 horizon by
+construction. Within the window, a delayed take-off cannot be distinguished from censoring.
+
+Two of the seven features are left-truncated for the earliest cohorts, for the reason given
+above. Because `ACCESS_SIZE` is one of the three features the Fractal Autoencoder selects, part
+of what the emergence-profile partition separates is emergence cohort rather than technological
+position. Records extending before 2002 and beyond 2022 would be needed to disentangle the two
+effects fully.
+
+## What is not in this repository
+
+Raw and cached patent records, which are public and are retrieved by stage 01. Per-technology
+labeled tables, which run to tens of megabytes each and are regenerated by the scripts that
+consume them. The manuscript source, because the paper is under review.
+
+## The seven features
+
+Computed in the emergence year, following Chen et al. (2025).
 
 | Feature | Description |
 |---|---|
-| ACCESS_SIZE | Sum of component patent counts in 5 years before emergence |
-| ACCESS_TREND | Growth ratio of component accessibility |
-| SIM_ACCESS | Absolute difference in component cumulative counts |
-| SIM_TECH | Weighted IPC distance at section, class, and subclass levels |
-| INVENT_DIVER | Entropy of IPC sections in early inventions |
-| INVENT_APPL | Average IPC codes per early patent |
-| ATTENT_SIZE | Number of early inventions |
+| `ACCESS_SIZE` | Patents on either component over the five years before emergence |
+| `ACCESS_TREND` | Ratio of component activity in the last year of that window to the first, minus one |
+| `SIM_ACCESS` | Absolute difference in cumulative activity between the two components |
+| `SIM_TECH` | Weighted dissimilarity of the two IPC codes at section, class and subclass level, with weights 0.5, 0.3 and 0.2 |
+| `INVENT_DIVER` | Shannon entropy of the IPC section distribution across the early inventions |
+| `INVENT_APPL` | Mean number of IPC codes per early invention |
+| `ATTENT_SIZE` | Count of early inventions |
 
-SIM_TECH ends up with only 4 unique values because IPC codes are hierarchical
-(weights are 0.5, 0.3, 0.2). This is the correct output of Chen et al.'s
-formula, not a bug.
-
-## Quick start
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the pipeline end to end:
-
-```bash
-# Fetch USPTO patents
-python scripts/01_fetch_data.py --start-year 2002 --end-year 2022
-
-# Extract technologies, compute features, build 20-year trajectories
-python scripts/02_build_trajectories.py
-
-# FAE feature selection (K=3, 4, 5 by default)
-python scripts/04_feature_selection.py
-
-# Cluster on FAE K=3 features into 3 clusters
-python scripts/04b_recluster.py --fae-k 3 --cluster-k 3
-
-# Classify with multiple models
-python scripts/05_classify.py \
-    --labeled-csv results/clustering/technologies_labeled_fae_k3_k3.csv \
-    --features SIM_TECH ACCESS_SIZE SIM_ACCESS \
-    --models tabm ft_transformer gbdt
-```
-
-To run the full 4 x 3 x 3 = 36-experiment matrix at once:
-
-```bash
-python scripts/run_experiments.py
-```
-
-## Scripts
-
-| Script | Purpose |
-|---|---|
-| 01_fetch_data.py | Download patents from USPTO ODP API |
-| 02_build_trajectories.py | Extract tech pairs, compute features, build trajectories |
-| 04_feature_selection.py | FAE feature selection (K = 3, 4, 5) |
-| 04b_recluster.py | Re-cluster on selected features |
-| 05_classify.py | Train and evaluate a single classifier |
-| 06_ablation_subsets.py | Exhaustive feature subset ablation by silhouette |
-| 07_visualize_clusters.py | Cluster figures (PCA, boxplots, trajectories) |
-| 08_fae_stability.py | Bootstrap stability test for FAE selection |
-| 09_multi_metric_ablation.py | Silhouette + Davies-Bouldin + Calinski-Harabasz |
-| 10_classify_top_subsets.py | Classification on top size-3 subsets across 5 models |
-| 11_paper_eval.py | FAE evaluation matched to Wu and Cheng (AAAI 2021) |
-| 12_training_fraction_sweep.py | DL vs GBDT under reduced training data |
-| run_experiments.py | Full 36-experiment matrix orchestrator |
-
-## Configuration
-
-All defaults live in `config/default.yaml`. Key settings:
-
-- `data`: API config, year range, observation window
-- `features`: SIM_TECH weights [0.5, 0.3, 0.2], access window 5 years
-- `clustering`: Euclidean k-means with StandardScaler, n_init=10
-- `training`: seed 42, 60/40 test ratio, 90/10 val ratio, early stopping on val macro-F1
+`SIM_TECH` rises as the two components become more distant, since each term indicates a
+difference at that level of the hierarchy rather than a match.
 
 ## References
 
-Chen, W., Ma, Y., Ba, Z., and Li, G. (2025). Predicting reuse patterns of novel
-technologies: the impact of technology components and early inventions on
-technology trajectories. *Scientometrics*.
-https://doi.org/10.1007/s11192-025-05449-1
+Chen, W., Ma, Y., Ba, Z., and Li, G. (2025). Predicting reuse patterns of novel technologies:
+the impact of technology components and early inventions on technology trajectories.
+*Scientometrics*. https://doi.org/10.1007/s11192-025-05449-1
 
-Wu, X., and Cheng, Q. (2021). Fractal autoencoders for feature selection.
-*Proceedings of the AAAI Conference on Artificial Intelligence*.
+Cho, K., van Merrienboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., and
+Bengio, Y. (2014). Learning phrase representations using RNN encoder-decoder for statistical
+machine translation. *Proceedings of EMNLP*.
+
+Wu, X., and Cheng, Q. (2021). Fractal autoencoders for feature selection. *Proceedings of the
+AAAI Conference on Artificial Intelligence*.
+
+## Data source
+
+Patent records come from the United States Patent and Trademark Office Open Data Portal and are
+in the public domain. The derived technology corpus is constructed by the code in this
+repository.

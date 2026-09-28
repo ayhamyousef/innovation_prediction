@@ -1,18 +1,29 @@
 #!/usr/bin/env python3
 """
-13_case_study_viz.py — Case study visualization (Dr. Cheng validation 1).
+13_case_study_viz.py -- case study visualization.
 
 Randomly sample technologies from the TEST set, plot their actual cumulative
-reuse trajectories, and annotate each with the "given label" (unsupervised
-k-means cluster) and the "predicted label" (trained classifier). Each panel
+reuse trajectories, and annotate each with the assigned label (unsupervised
+k-means cluster) and the predicted label (trained classifier). Each panel
 overlays the cluster mean trajectory as a reference. A second figure shows all
 misclassified test examples.
 
-Reproduces the exact 60/40 split of 05_classify.py (same seed/stratification)
+Reproduces the exact 60/40 split of 05_classify.py (same seed and stratification)
 so the test set is identical, then trains the chosen classifier.
 
 Usage:
     python scripts/13_case_study_viz.py --model tabmixer --n-per-cluster 5 --show-errors
+
+Note on reproducibility
+-----------------------
+This script retrains the classifier, and the error count is sensitive to the
+numerical environment rather than to the seed alone. On the classification task the
+model misclassifies a handful of the 80,684 test technologies, and BLAS threading
+order can move which ones, so a rerun on different hardware may report a slightly
+different count at the same seed=42. The published figures come from the reference
+run recorded in results/case_study/case_study_summary_tabmixer.json; check that file
+before replacing them, so that the figure and the reported count agree.
+
 """
 
 import argparse
@@ -98,7 +109,23 @@ def main():
     # ---- Load labeled data + aligned trajectories ----
     tech_df = pd.read_csv(args.labeled_csv)
     n = len(tech_df)
-    trajectories = np.load(Path(cfg["data"]["processed_dir"]) / "trajectories.npy")
+    traj_npy = Path(cfg["data"]["processed_dir"]) / "trajectories.npy"
+    if traj_npy.exists():
+        trajectories = np.load(traj_npy)
+    else:
+        # data/processed/ is only populated on the machine that ran scripts 1-3.
+        # The labeled CSV carries year_counts, so the same cumulative
+        # trajectories can be rebuilt row-aligned with tech_df. Verified against
+        # the published cluster means (129.6 / 253.1 / 50.1 at year 20).
+        logger.info(f"{traj_npy} absent; rebuilding trajectories from year_counts")
+        W_ = int(cfg["data"].get("window_years", 20))
+        _yc = tech_df["year_counts"].values
+        _y0 = tech_df["emergence_year"].values.astype(int)
+        trajectories = np.zeros((len(tech_df), W_), dtype=np.float64)
+        for _i in range(len(tech_df)):
+            _d = json.loads(_yc[_i])
+            trajectories[_i] = np.cumsum(
+                [_d.get(str(_y0[_i] + _t), 0) for _t in range(W_)])
     if len(trajectories) != n:
         logger.error("Trajectory/row count mismatch; aborting.")
         sys.exit(1)
@@ -181,7 +208,19 @@ def main():
             # per-panel y-limit from this example + its median, so the SHAPE is
             # always legible. Clusters differ in magnitude by design; the median
             # reference inside each panel carries the scale comparison.
-            ax.set_ylim(0, 1.15 * max(float(traj.max()), float(cmed.max())))
+            # Cap the panel relative to the cluster median so BOTH the example
+            # and the median reference stay legible. A rare member can exceed
+            # its cluster median by an order of magnitude; clipping that line
+            # and stating its true year-20 value keeps the shape comparison
+            # readable without hiding the magnitude.
+            cap = 1.15 * max(float(traj.max()), float(cmed.max()))
+            ceiling = 4.0 * float(cmed.max())
+            if float(traj.max()) > ceiling:
+                cap = 1.15 * ceiling
+                ax.annotate(f"reaches {traj[-1]:,.0f}", xy=(0.96, 0.95),
+                            xycoords="axes fraction", ha="right", va="top",
+                            fontsize=6.5, color=color)
+            ax.set_ylim(0, cap)
             # error cue: red + BOLD title (bold survives greyscale; the cross
             # glyph is absent in Liberation Sans so weight carries the signal)
             ax.set_title(f"C{given}{ARROW}C{pred}", fontsize=8.5, pad=2,
@@ -207,7 +246,9 @@ def main():
         err = np.where(y_pred_test != given_test)[0]
         k = min(len(err), 12)
         pick = err if len(err) <= 12 else rng.choice(err, 12, replace=False)
-        cols = min(k, 4)
+        # Up to five errors fit on one row; a 4+1 grid left three dead cells
+        # and, with sharex, stripped the x tick labels from the top row.
+        cols = k if k <= 5 else 4
         rows = (k + cols - 1) // cols
         fig, axes = plt.subplots(rows, cols, figsize=(2.4 * cols, 2.0 * rows),
                                  sharex=True, constrained_layout=True,
@@ -230,9 +271,12 @@ def main():
                     lw=1.8, label="this technology")
             ax.set_title(f"C{given}{ARROW}C{pred}", fontsize=8.5, pad=2,
                          color=ERROR_COLOR, fontweight="bold")
-            ax.tick_params(labelsize=7)
-            if jj == 0:
-                ax.legend(fontsize=6.5, loc="lower right")
+            ax.tick_params(labelsize=7, labelbottom=True)
+        # One figure-level legend below the row, instead of one inside panel 0
+        # sitting on top of that panel's trajectory.
+        h, l = axes[0][0].get_legend_handles_labels()
+        fig.legend(h, l, loc="outside lower center", ncols=3, fontsize=7,
+                   frameon=False)
         _supxlabel(fig, "Years since emergence", fontsize=10)
         _supylabel(fig, "Cumulative reuse count", fontsize=10)
         # (no in-figure title; the "{n_err} of {n_test} misclassified" statement

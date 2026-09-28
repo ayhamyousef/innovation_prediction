@@ -5,7 +5,7 @@
 For every non-empty subset of the 7 features (2^7 - 1 = 127 subsets, or
 a restricted size range), cluster with k-means and record silhouette.
 
-Answers three of Dr. Cheng's questions at once:
+Answers three questions at once:
   1. Does FAE K=3 beat random 3-feature subsets?
      -> rank FAE's subset silhouette among all C(7,3)=35 size-3 subsets.
   2. Are ATTENT_SIZE and INVENT_APPL detrimental?

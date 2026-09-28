@@ -2,9 +2,9 @@
 """
 10_classify_top_subsets.py — Classification on top-silhouette subsets and FAE.
 
-Per Dr. Cheng (2026-04-22): "use downstream prediction/classification results
-to speak. This is more certain, because for classification/prediction we have
-ground truth."
+Internal cluster-quality indices are unlabelled measures and can disagree with
+each other. Downstream classification gives a sharper comparison, because there the
+cluster assignment supplies a target against which predictions can be scored.
 
 For each subset in the candidate list:
   1. Cluster (KMeans) on the standardized feature matrix to produce labels

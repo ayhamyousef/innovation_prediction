@@ -1,0 +1,38 @@
+{
+  "horizon_years": 10,
+  "max_cohort": 2012,
+  "n": 179459,
+  "n_full_corpus": 201710,
+  "pct_of_corpus": 89.0,
+  "cluster_sizes": [
+    36848,
+    32002,
+    110609
+  ],
+  "silhouette_latent": 0.2313,
+  "cluster_median_year": {
+    "0": 2004,
+    "1": 2005,
+    "2": 2004
+  },
+  "downstream": {
+    "all7": {
+      "n_features": 7,
+      "accuracy": 0.6285,
+      "macro_f1": 0.3156,
+      "roc_auc_ovr_macro": 0.6606
+    },
+    "year_only": {
+      "n_features": 1,
+      "accuracy": 0.6163,
+      "macro_f1": 0.2542,
+      "roc_auc_ovr_macro": 0.6209
+    },
+    "no_access": {
+      "n_features": 5,
+      "accuracy": 0.6279,
+      "macro_f1": 0.3096,
+      "roc_auc_ovr_macro": 0.6447
+    }
+  }
+}

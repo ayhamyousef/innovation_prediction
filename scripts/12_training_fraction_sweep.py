@@ -3,9 +3,9 @@
 12_training_fraction_sweep.py — Test whether DL holds up better than GBDT
 under reduced training data.
 
-Motivated by Dr. Cheng's question (2026-04-29): if GBDT already achieves
-near-100% accuracy on FAE-selected features, why use DL? Cheng's option 3 was
-to test under harder conditions where DL might genuinely help.
+At full training data GBDT already reaches near-100% accuracy on the FAE-selected
+features, which leaves no room to distinguish the model families. Reducing the
+training set is the condition under which any difference between them would show.
 
 For each training fraction in {0.01, 0.05, 0.10, 0.25, 0.50, 1.00} and each
 model in {gbdt, tabm, ft_transformer, extra_trees, tabnet}:

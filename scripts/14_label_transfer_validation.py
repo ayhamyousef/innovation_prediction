@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-14_label_transfer_validation.py — Independent labeling validation (Dr. Cheng
-validation 2, 2026-06-02 meeting).
+14_label_transfer_validation.py — Validation against an independently constructed labeling.
 
 Addresses the concern that our unsupervised labeling (k-means on feature
 vectors) shares inputs with the supervised classifier. The test:
@@ -25,7 +24,8 @@ Trajectory clustering can use a different k (Chen et al. used 4). To compare:
     primary, most rigorous numbers.
   - When k matches (default 3), we also Hungarian-match the labels and report
     accuracy / macro-F1 / ROC-AUC, the "performance on new labels" framing
-    Dr. Cheng asked for, comparable to Chen et al.'s GBDT ROC-AUC = 0.728.
+    a target external to the features, alongside the reference GBDT ROC-AUC of 0.728
+    reported by Chen et al. (2025) on a different corpus.
 
 Backup mode (--retrain): if transfer is weak, retrain the classifier from
 scratch on the trajectory-shape labels (supports k=4) and evaluate normally.

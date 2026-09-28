@@ -1,0 +1,17 @@
+{
+  "all7": {
+    "accuracy": 0.6064,
+    "macro_f1": 0.5911,
+    "roc_auc_ovr_macro": 0.831
+  },
+  "year_only": {
+    "accuracy": 0.6333,
+    "macro_f1": 0.6452,
+    "roc_auc_ovr_macro": 0.8192
+  },
+  "no_access": {
+    "accuracy": 0.5273,
+    "macro_f1": 0.4997,
+    "roc_auc_ovr_macro": 0.7611
+  }
+}

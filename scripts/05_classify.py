@@ -2,7 +2,7 @@
 """
 05_classify.py — Train tabular DL models on clustered technology data.
 
-Implements Dr. Cheng's pipeline Step 3-4:
+Stages 3 and 4 of the pipeline:
   - Load pre-clustered data (from 04b_recluster.py output)
   - Split: 60% train / 40% test, within train 90% train / 10% val
   - Train TabNet, TabM, and/or FT-Transformer

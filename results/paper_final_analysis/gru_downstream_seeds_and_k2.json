@@ -1,0 +1,36 @@
+{
+  "k3_split_seed_stability": [
+    {
+      "seed": 42,
+      "accuracy": 0.868,
+      "macro_f1": 0.7826,
+      "roc_auc_ovr_macro": 0.9138
+    },
+    {
+      "seed": 7,
+      "accuracy": 0.8674,
+      "macro_f1": 0.7849,
+      "roc_auc_ovr_macro": 0.9144
+    },
+    {
+      "seed": 123,
+      "accuracy": 0.8665,
+      "macro_f1": 0.7796,
+      "roc_auc_ovr_macro": 0.9132
+    }
+  ],
+  "k2_row": {
+    "silhouette": 0.5115,
+    "sizes": [
+      47148,
+      154562
+    ],
+    "smallest_cluster_pct": 23.4,
+    "gbdt_all7": {
+      "seed": 42,
+      "accuracy": 0.8746,
+      "macro_f1": 0.821,
+      "roc_auc_ovr_macro": 0.9042
+    }
+  }
+}

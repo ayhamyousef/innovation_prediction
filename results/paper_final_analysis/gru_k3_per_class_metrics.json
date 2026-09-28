@@ -1,0 +1,41 @@
+{
+  "accuracy": 0.868,
+  "macro_f1": 0.7826,
+  "roc_auc_ovr_macro": 0.9138,
+  "per_class": {
+    "S0": {
+      "precision": 0.7944,
+      "recall": 0.7234,
+      "f1": 0.7572,
+      "support": 22390,
+      "pr_auc": 0.79,
+      "roc_auc": 0.8889
+    },
+    "S1": {
+      "precision": 0.8542,
+      "recall": 0.5578,
+      "f1": 0.6749,
+      "support": 2352,
+      "pr_auc": 0.6984,
+      "roc_auc": 0.9475
+    },
+    "S2": {
+      "precision": 0.8939,
+      "recall": 0.9389,
+      "f1": 0.9158,
+      "support": 55942,
+      "pr_auc": 0.9407,
+      "roc_auc": 0.9051
+    }
+  },
+  "train_counts": [
+    33584,
+    3528,
+    83914
+  ],
+  "test_counts": [
+    22390,
+    2352,
+    55942
+  ]
+}

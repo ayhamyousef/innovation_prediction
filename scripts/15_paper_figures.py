@@ -108,11 +108,14 @@ def fig_feature_budget():
         else:
             ax.plot(xi, auc, "s", markerfacecolor="white", markeredgecolor=REF_COLOR,
                     markeredgewidth=1.3, markersize=8, zorder=3)
+        # 9pt cleared the marker centre but not its 8pt glyph; 13pt clears
+        # both the marker and the connecting line.
         ax.annotate(f"{auc:.3f}", (xi, auc), textcoords="offset points",
-                    xytext=(0, 9), ha="center", fontsize=7)
+                    xytext=(0, 13), ha="center", fontsize=7)
 
     ax.axhline(CHEN_AUC, ls=(0, (5, 2)), color=REF_COLOR, lw=1.0)
-    ax.text(0.99, CHEN_AUC + 0.004, "Chen et al. (2025): 0.728",
+    # 0.99 put the string flush against the right spine.
+    ax.text(0.965, CHEN_AUC + 0.004, "Chen et al. (2025): 0.728",
             transform=ax.get_yaxis_transform(), ha="right", va="bottom",
             fontsize=7.5, color=REF_COLOR)
 

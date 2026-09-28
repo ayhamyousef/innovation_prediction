@@ -2,31 +2,30 @@
 """
 16_sequence_autoencoder.py -- GRU autoencoder for sequence-based clustering.
 
-This implements the approach Dr. Ye specified (2026-07-15 meeting): learn a latent
-representation Z of each reuse trajectory with a plain GRU autoencoder, optionally push
-Z toward a sparse (cluster-revealing) structure with an L1 penalty, then cluster Z.
+Learn a latent representation Z of each reuse trajectory with a plain GRU
+autoencoder, optionally push Z toward a sparse, cluster-revealing structure with an
+L1 penalty, then cluster Z.
 
-Design decisions from that meeting, encoded here:
-  - Plain GRU, NOT NC-GRU. Sequences are length ~20, so the orthogonal-matrix machinery
-    for long-term dependencies is unnecessary.
-  - Architecture = encoder (sequence -> latent vector Z) + decoder (Z -> sequence),
-    trained on reconstruction. This is the paper's AutoEncoder box; the Molecular
-    Properties Consistency Network (which regularized the latent against 7 external
-    properties) is DELETED. We do NOT regularize Z against the 7 features -- that would
-    re-create the circularity from paper 1. The only regularizer on Z is the L1 penalty.
-  - Cluster the latent Z (k-means), not the raw sequence. Two Z's that are close should
-    share a trajectory pattern.
-  - Grid: {1 layer, 3 layers} x {L1 off/on} x {latent dim 8, 16, 32 (and optionally 3)}.
-    Start simple: 1 layer, dim 16, no L1.
+Design decisions and their reasons:
+  - Plain GRU rather than an orthogonally constrained variant. Sequences are about 20
+    steps, so the machinery for long-range dependencies is unnecessary here.
+  - Encoder (sequence -> latent vector Z) plus decoder (Z -> sequence), trained on
+    reconstruction alone. Z is deliberately NOT regularized against the seven
+    emergence-time features: doing so would make the labeling depend on the same
+    features the downstream classifier receives, and the point of this route is that
+    it does not. The only regularizer on Z is the L1 penalty.
+  - Cluster the latent Z with k-means rather than the raw sequence, so that two
+    trajectories close in Z share a pattern rather than a magnitude.
+  - Grid: {1, 3} layers x {L1 off, on} x latent dim {8, 16, 32}.
 
 Usage:
     # quick end-to-end self-test on synthetic archetypes (no real data needed):
     python scripts/16_sequence_autoencoder.py --synthetic
 
-    # single real run (on speedy3, where trajectories.npy exists):
+    # single run on the real trajectories:
     python scripts/16_sequence_autoencoder.py --latent-dim 16 --layers 1
 
-    # the full grid Ye asked for:
+    # the full grid:
     python scripts/16_sequence_autoencoder.py --grid
 """
 
@@ -129,7 +128,7 @@ def normalize_trajectories(traj, mode):
         m = traj.max(axis=1, keepdims=True)
         m[m == 0] = 1.0
         return traj / m
-    # default: per-sequence z-normalization (matches paper 1's Validation 2)
+    # default: per-sequence z-normalization, so clustering responds to shape not scale
     mu = traj.mean(axis=1, keepdims=True)
     sd = traj.std(axis=1, keepdims=True)
     sd[sd == 0] = 1.0
