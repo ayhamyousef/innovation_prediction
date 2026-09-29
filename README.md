@@ -61,7 +61,7 @@ Expect the fetch to take several hours and to produce several gigabytes.
     python scripts/04b_recluster.py             # emergence-profile labels
     python scripts/05_classify.py               # the seven tabular classifiers
     python scripts/06_ablation_subsets.py       # exhaustive feature-subset ablation
-    python scripts/16_sequence_autoencoder.py   # GRU autoencoder, sequence-based labels
+    python scripts/16_sequence_autoencoder.py --latent-dim 8 --l1 0.01   # GRU autoencoder, sequence-based labels
     python scripts/17_gru_ksweep_downstream.py  # cluster-count sweep and downstream prediction
 
 Stages 07 through 15 produce the supporting analyses and the figures. Stages 18, 21 and 23

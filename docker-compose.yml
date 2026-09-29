@@ -74,7 +74,7 @@ services:
   # Stage 16: GRU sequence autoencoder, sequence-based labels
   sequence-autoencoder:
     build: .
-    command: ["scripts/16_sequence_autoencoder.py"]
+    command: ["scripts/16_sequence_autoencoder.py", "--latent-dim", "8", "--l1", "0.01"]
     volumes:
       - ./data:/app/data
       - ./results:/app/results
