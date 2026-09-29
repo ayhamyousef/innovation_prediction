@@ -1,9 +1,9 @@
 """
 Technology reuse trajectory construction and clustering.
 
-Builds cumulative reuse curves for each novel technology, then clusters
-them using DTW + k-means to produce innovation growth curve labels.
-Number of clusters and trajectory labels are configurable.
+Builds cumulative reuse curves for each novel technology and clusters them
+with k-means under either a DTW or a Euclidean distance on z-normalized curves.
+The number of clusters and the method are configurable.
 """
 
 import logging
@@ -249,7 +249,7 @@ def _manual_dtw_kmeans(trajectories: np.ndarray, n_clusters: int,
                         window: Optional[int]) -> Tuple[np.ndarray, Dict]:
     """
     Precompute DTW distance matrix, then run k-means on it.
-    For large datasets, this is expensive — consider subsampling.
+    For large datasets this is expensive; consider subsampling.
     """
     n = len(trajectories)
     if n > 10000:
@@ -327,7 +327,7 @@ def find_optimal_k(trajectories: np.ndarray, k_range: range = range(2, 11),
 # Cluster Characterization
 # ============================================================
 
-# Default cluster names — these are placeholders assigned by index.
+# Default cluster names: placeholders assigned by index.
 # Actual trajectory shapes should be validated by plotting cluster centers.
 CLUSTER_NAMES = {
     0: "Cluster_0",

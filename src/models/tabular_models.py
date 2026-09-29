@@ -1,10 +1,13 @@
 """
-Tabular deep learning models for technology trajectory classification.
+Tabular classifiers for reuse-pattern classification.
 
-Implements wrappers for three architecturally distinct approaches:
-  1. TabNet (CNN/attention-based, instance-wise feature selection)
-  2. TabM (Ensemble of MLPs with batch ensembling)
-  3. FT-Transformer (Feature Tokenizer + Transformer encoder)
+Wrappers for the seven classifiers evaluated in the paper:
+  - TabNet (sequential attention, instance-wise feature selection)
+  - FT-Transformer (feature tokenizer + Transformer encoder)
+  - TabM (ensemble of MLPs with batch ensembling)
+  - TabKAN (Chebyshev Kolmogorov-Arnold network mixer)
+  - TabMixer (MLP-mixer for tabular data)
+  - ExtraTrees and GBDT (scikit-learn tree ensembles)
 
 All models share a common interface:
   - fit(X_train, y_train, X_val, y_val)
@@ -15,7 +18,11 @@ All models share a common interface:
 import logging
 from typing import Dict, List, Optional, Tuple
 
+import math
+
 import numpy as np
+import torch
+import torch.nn as nn
 
 logger = logging.getLogger("innovation_prediction.tabular_models")
 
@@ -235,20 +242,10 @@ class FTTransformerWrapper:
         return np.concatenate(all_proba, axis=0)
 
 
-class _FTTransformerModel(object):
-    """Minimal FT-Transformer implementation in PyTorch."""
-    pass  # Replaced below with actual implementation
-
-
-import torch
-import torch.nn as nn
-import math
-
-
 class _FTTransformerModel(nn.Module):
     """
     Minimal FT-Transformer: each numerical feature gets a learned token
-    embedding, then standard Transformer encoder, then [CLS] → classifier.
+    embedding, then standard Transformer encoder, then [CLS] -> classifier.
     """
 
     def __init__(self, n_features: int, n_classes: int,
@@ -260,7 +257,7 @@ class _FTTransformerModel(nn.Module):
                  residual_dropout: float = 0.0):
         super().__init__()
 
-        # Feature tokenizer: each feature gets its own linear → d_token
+        # Feature tokenizer: each feature gets its own linear -> d_token
         self.feature_tokenizer = nn.ModuleList([
             nn.Linear(1, d_token) for _ in range(n_features)
         ])
@@ -311,7 +308,7 @@ class _FTTransformerModel(nn.Module):
         # Transformer
         out = self.transformer(tokens)  # (B, n_features+1, d_token)
 
-        # [CLS] output → classification
+        # [CLS] output -> classification
         cls_out = out[:, 0, :]  # (B, d_token)
         return self.head(cls_out)
 
@@ -490,11 +487,11 @@ class _TabMModel(nn.Module):
         Args:
             x: (B, n_features)
         Returns:
-            logits: (B, n_classes) — averaged across ensemble members
+            logits: (B, n_classes), averaged across ensemble members
         """
         B = x.shape[0]
 
-        # Expand x for ensemble: (B, 1, n_features) → broadcast with (1, M, n_features)
+        # Expand x for ensemble: (B, 1, n_features) -> broadcast with (1, M, n_features)
         all_logits = []
 
         for m in range(self.n_ensemble):
@@ -903,7 +900,8 @@ def build_tabular_model(model_name: str, n_features: int, n_classes: int,
     Factory function to create tabular model by name.
 
     Args:
-        model_name: "tabnet", "tabm", "ft_transformer", "extra_trees", or "gbdt"
+        model_name: "tabnet", "tabm", "ft_transformer", "tabkan", "tabmixer",
+                    "extra_trees", or "gbdt"
         n_features: number of input features
         n_classes: number of output classes
         device: "cpu" or "cuda"

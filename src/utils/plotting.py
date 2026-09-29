@@ -1,7 +1,7 @@
 """
 Shared publication-quality plotting style and named-color system.
 
-Design spec (multi-expert synthesis + adversarial review):
+Design conventions:
   - Sans-serif (Liberation Sans, Arial-metric-compatible) with DejaVu fallback.
   - SEMANTIC colors: a series is colored by what it MEANS (cluster id / model
     name), never by loop index. Use CLUSTER_COLORS / MODEL_STYLE, not PALETTE.
@@ -52,7 +52,7 @@ BAND_ALPHA = 0.18         # percentile / std bands
 BOX_ALPHA = 0.55          # boxplot fills
 SCATTER_ALPHA = 0.28      # dense scatter points
 
-ARROW = "→"          # → (present in Liberation Sans and DejaVu Sans)
+ARROW = "\u2192"     # right arrow; present in Liberation Sans and DejaVu Sans
 
 # Backwards-compatible categorical palette (legacy; prefer the named maps above).
 PALETTE = ["#0072B2", "#E69F00", "#CC79A7", "#009E73", "#56B4E9", "#000000"]

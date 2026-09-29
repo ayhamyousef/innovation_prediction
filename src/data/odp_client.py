@@ -201,7 +201,7 @@ class ODPClient:
             filing_date = meta.get("filingDate", "") or ""
             grant_year = int(grant_date[:4]) if grant_date else None
 
-            # CPC codes (successor to IPC — same hierarchical structure)
+            # CPC codes (successor to IPC, with the same hierarchical structure)
             cpc_codes_raw = meta.get("cpcClassificationBag", []) or []
             cpc_codes = [c.strip().replace(" ", "") for c in cpc_codes_raw if c]
 
@@ -209,7 +209,7 @@ class ODPClient:
             inventor_bag = meta.get("inventorBag", []) or []
             inventor_count = len(inventor_bag)
 
-            # Assignee info not directly in search results — use customer number as proxy
+            # Assignee info is not in the search results; the customer number is used as a proxy
             assignee_names = []
 
             # Map CPC codes to ipc_codes fields for downstream compatibility

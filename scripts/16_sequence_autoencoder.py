@@ -22,8 +22,8 @@ Usage:
     # quick end-to-end self-test on synthetic archetypes (no real data needed):
     python scripts/16_sequence_autoencoder.py --synthetic
 
-    # single run on the real trajectories:
-    python scripts/16_sequence_autoencoder.py --latent-dim 16 --layers 1
+    # single run with the configuration reported in the paper:
+    python scripts/16_sequence_autoencoder.py --latent-dim 8 --l1 0.01
 
     # the full grid:
     python scripts/16_sequence_autoencoder.py --grid

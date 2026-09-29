@@ -56,54 +56,7 @@ paper*.zip
 *.toc
 
 # ---------------------------------------------------------------------------
-# Working notes, correspondence and personal documents. None of this belongs
-# in a public repository.
-# ---------------------------------------------------------------------------
-meeting_*.md
-*_prep*.md
-*meeting*.md
-referee_review*.md
-*_audit.md
-citation_audit.md
-methodology_audit.md
-literature_check.md
-journal_candidates_memo.md
-reference_count_memo.md
-deliverables_combined_paper.md
-annotation_findings.md
-feedback_*.md
-HANDOFF_*.md
-PROJECT_BRIEF*.md
-MIGRATION.md
-EXPERIMENTS.md
-infineon_*.md
-*cv.tex
-*cv.pdf
-*resume*.tex
-*resume*.pdf
-*resume*.md
-*personal_statement*.tex
-*personal_statement*.pdf
-
-# ---------------------------------------------------------------------------
-# Annotation pilot. Superseded and withdrawn from the study; retained locally
-# only as a record of work done.
-# ---------------------------------------------------------------------------
-results/human_annotation/
-results/paper_final_analysis/meeting_deliverables.json
-results/paper_final_analysis/deliverables_run*.log
-scripts/19_meeting_deliverables.py
-scripts/20_annotation_agreement.py
-scripts/22_annotation_multi_annotator.py
-
-# ---------------------------------------------------------------------------
-# Superseded scripts from the abandoned text-classification pipeline
-# ---------------------------------------------------------------------------
-scripts/old_*.py
-scripts/investigate_*.py
-
-# ---------------------------------------------------------------------------
-# OS and editor
+# OS, editor and logs
 # ---------------------------------------------------------------------------
 .DS_Store
 Thumbs.db

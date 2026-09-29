@@ -4,20 +4,20 @@ Fractal Autoencoder (FAE) for unsupervised feature selection.
 Based on: "Fractal Autoencoders for Feature Selection"
 by Xinxing Wu & Qiang Cheng (AAAI 2021).
 
-This implements the LINEAR version of FAE (Section 4.1 of the paper),
-which already achieves SOTA per the paper's results.
+This implements the linear version of FAE (Section 4.1 of the paper),
+the variant used in this study.
 
 Architecture:
-    Input X (N, m) → diagonal importance weights W_I (m,)
-    Global path:  X * W_I → Encoder W_E (m→k) → Decoder W_D (k→m) → X_hat
-    Sub-NN path:  X * W_I^maxk → same Encoder → same Decoder → X_hat_sub
+    Input X (N, m) -> diagonal importance weights W_I (m,)
+    Global path:  X * W_I -> Encoder W_E (m->k) -> Decoder W_D (k->m) -> X_hat
+    Sub-NN path:  X * W_I^maxk -> same Encoder -> same Decoder -> X_hat_sub
 
     W_I^maxk = W_I with only the top-K largest weights kept, rest zeroed.
 
 Loss (Equation 3):
-    L = ||X - f(g(X * W_I))||²_F
-        + λ1 * ||X - f(g(X * W_I^maxk))||²_F
-        + λ2 * ||W_I||_1
+    L = ||X - f(g(X * W_I))||_F^2
+        + lambda1 * ||X - f(g(X * W_I^maxk))||_F^2
+        + lambda2 * ||W_I||_1
     subject to W_I >= 0
 """
 
@@ -55,9 +55,9 @@ class FractalAutoencoder(nn.Module):
         wi_init = torch.empty(input_dim).uniform_(0.999999, 0.9999999)
         self.w_i = nn.Parameter(wi_init)
 
-        # Linear encoder: m → k
+        # Linear encoder: m -> k
         self.encoder = nn.Linear(input_dim, k, bias=False)
-        # Linear decoder: k → m
+        # Linear decoder: k -> m
         self.decoder = nn.Linear(k, input_dim, bias=False)
 
         # Xavier normal initialization for encoder/decoder

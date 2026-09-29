@@ -4,8 +4,6 @@ Feature extraction for technology components and early inventions.
 Implements the 7 features from Chen et al. (2025):
   Technology components:  ACCESS_SIZE, ACCESS_TREND, SIM_ACCESS, SIM_TECH
   Early inventions:       INVENT_DIVER, INVENT_APPL, ATTENT_SIZE
-
-Plus additional metadata features for the Transformer model.
 """
 
 import logging
@@ -238,69 +236,3 @@ class TechnologyExtractor:
             "INVENT_APPL": invent_appl,
             "ATTENT_SIZE": attent_size,
         }
-
-
-class PatentTextExtractor:
-    """
-    Extract and prepare text features from patents for the Transformer.
-    Combines available text fields (title, abstract, claims) into model input.
-
-    Note: ODP API provides titles only — abstracts and claims are not available.
-    When use_abstract=False, only titles are used.
-    """
-
-    def __init__(self, use_title: bool = True, use_abstract: bool = True,
-                 use_claims: bool = False):
-        self.use_title = use_title
-        self.use_abstract = use_abstract
-        self.use_claims = use_claims
-
-    def get_text(self, patent: Dict) -> str:
-        """Combine patent text fields into a single string."""
-        parts = []
-        if self.use_title:
-            title = patent.get("title", "")
-            if title:
-                parts.append(f"Title: {title}")
-        if self.use_abstract:
-            abstract = patent.get("abstract", "")
-            if abstract:
-                parts.append(f"Abstract: {abstract}")
-        if self.use_claims:
-            claims = patent.get("claims_text", "")
-            if claims:
-                parts.append(f"Claims: {claims}")
-        return " ".join(parts)
-
-    def get_metadata_vector(self, patent: Dict,
-                            tech_features: Optional[Dict] = None) -> np.ndarray:
-        """
-        Build a numerical metadata vector for a patent/technology.
-        Includes both patent-level and technology-level features.
-        """
-        meta = []
-        # Patent-level
-        meta.append(float(patent.get("inventor_count", 0)))
-        meta.append(float(patent.get("assignee_count", 0)))
-        meta.append(float(patent.get("num_claims", 0)))
-        meta.append(float(len(patent.get("ipc_codes_6digit", []))))
-        filing_year = 0
-        app_date = patent.get("application_date", "")
-        if app_date and len(app_date) >= 4:
-            try:
-                filing_year = int(app_date[:4])
-            except ValueError:
-                pass
-        meta.append(float(filing_year))
-
-        # Technology-level (from paper)
-        if tech_features:
-            meta.append(float(tech_features.get("ACCESS_SIZE", 0)))
-            meta.append(float(tech_features.get("ACCESS_TREND", 0)))
-            meta.append(float(tech_features.get("SIM_ACCESS", 0)))
-            meta.append(float(tech_features.get("SIM_TECH", 0)))
-            meta.append(float(tech_features.get("INVENT_DIVER", 0)))
-            meta.append(float(tech_features.get("INVENT_APPL", 0)))
-            meta.append(float(tech_features.get("ATTENT_SIZE", 0)))
-
-        return np.array(meta, dtype=np.float32)

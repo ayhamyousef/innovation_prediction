@@ -2,16 +2,16 @@
 
 The corpus runs 2002-2022, so a technology emerging in 2017 is observed for only
 five of the twenty years and its trajectory is flat thereafter by construction.
-scripts/25 showed the consequence: emergence year alone predicts the k=3
-sequence labels almost as well as the seven features, because cluster membership
-is partly a function of how much of the window was observed.
+scripts/25 showed that emergence year alone predicts the k=3 sequence labels
+almost as well as the seven features. One candidate explanation is right-censoring:
+cluster membership could partly reflect how much of the window was observed.
 
 This script removes the confound instead of measuring it. Restricting to
 technologies that emerged in 2012 or earlier and truncating every trajectory to
 its first ten years gives a subcohort in which EVERY technology is observed for
 exactly the same length of time. Right-censoring is then absent by construction,
-so if the year shortcut is censoring it should collapse here, and whatever
-predictability survives is attributable to the features rather than the horizon.
+so if the year effect were due to censoring it would collapse here; whatever
+predictability survives cannot be attributed to censoring.
 
 Everything else follows the paper: trajectories rebuilt from year_counts,
 per-sequence z-normalization, the GRUSeqAutoencoder of scripts/16 with the same

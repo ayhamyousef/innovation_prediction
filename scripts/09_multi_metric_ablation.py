@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-09_multi_metric_ablation.py — Re-evaluate size-3 subsets with multiple
+09_multi_metric_ablation.py: Re-evaluate size-3 subsets with multiple
 clustering metrics.
 
 Silhouette is one of several internal validity criteria, and they do not always
@@ -209,7 +209,7 @@ def main():
     logger.info("  Higher silhouette = tighter, better-separated clusters")
     logger.info("  Lower Davies-Bouldin = better cluster separation per scatter")
     logger.info("  Higher Calinski-Harabasz = better between/within variance ratio")
-    logger.info("\nIf FAE ranks well in 2 of 3 metrics, claim is robust.")
+    logger.info("\nThe metrics can disagree; each ranking is reported as computed.")
 
 
 if __name__ == "__main__":

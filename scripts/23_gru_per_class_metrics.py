@@ -1,3 +1,8 @@
+"""
+Per-class results for GBDT on the sequence-based (GRU) labels at k=3: precision,
+recall, F1, one-vs-rest ROC-AUC and average precision for each class, under the
+standard protocol (stratified 60/40 split, standardization fit on train, seed 42).
+"""
 import numpy as np, pandas as pd, json
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -10,8 +15,8 @@ FEATS = ['ACCESS_SIZE','ACCESS_TREND','SIM_ACCESS','SIM_TECH',
          'INVENT_DIVER','INVENT_APPL','ATTENT_SIZE']
 # Sequence labels: use the k=3 labels produced by scripts/17, which are the ones the
 # paper reports (cluster sizes 139,856 / 55,974 / 5,880). results/seq_autoencoder/
-# cluster_labels.npy is an earlier run of scripts/16 that differs on 14 of 201,710
-# technologies and does NOT match the published table; it is kept only as a record.
+# cluster_labels.npy comes from an earlier run of scripts/16 and differs from these on
+# 14 of 201,710 technologies; all reported results use the labels below.
 LABELS = 'results/seq_autoencoder/ksweep/labels_k3.npy'
 
 df = pd.read_csv('results/clustering/technologies_labeled_all7_k3.csv')

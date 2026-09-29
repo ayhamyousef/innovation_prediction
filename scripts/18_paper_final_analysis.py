@@ -2,20 +2,19 @@
 """
 18_paper_final_analysis.py -- supporting analyses for the reported results.
 
-Each item below closes a specific gap:
+Analyses:
   A. Right-censoring: emergence-year cohort distribution; how many technologies have a
      full 20-year window; per-cluster emergence-year composition (are late, censored
      cohorts concentrated in particular clusters?).
   B. Cluster-count justification: k-means on the FAE K=3 features for k in 2..6 with
-     silhouette / Calinski-Harabasz / Davies-Bouldin (the paper currently claims k=3 is
-     favoured "across multiple criteria" but never shows the sweep).
+     silhouette / Calinski-Harabasz / Davies-Bouldin (the cluster-count sweep table).
   C. Cluster characterization: per-cluster feature centroids (raw units) and IPC-section
      composition -- what a scientometrics reader should understand each cluster to be.
   D. Matched-k agreement: ARI/NMI between feature clusters and trajectory-shape clusters
-     at matched k (3v3, 4v4) plus the full 3v4 contingency table. Removes the "different
-     numbers of clusters" excuse from the independence claim.
-  E. Controlled INVENT_APPL ablation on the trajectory task: reproduce the published
-     all-7 GBDT run (fingerprint: ROC-AUC 0.8306), then run FAE3+INVENT_APPL (4 feats)
+     at matched k (3v3, 4v4) plus the full 3v4 contingency table, so the comparison
+     does not depend on differing cluster counts.
+  E. Controlled INVENT_APPL ablation on the trajectory task: reproduce the reported
+     all-7 GBDT run (ROC-AUC 0.8306, as a check), then run FAE3+INVENT_APPL (4 feats)
      and all7-INVENT_APPL (6 feats) with the identical protocol.
   F. GRU-latent elbow (k vs inertia, k=2..10), the cluster-count selection criterion.
 
@@ -24,7 +23,7 @@ build_reuse_trajectories does (zeros beyond the data horizon, cumsum), so labels
 reproduce the pipeline's. Protocol constants mirror scripts/14 (seed 42, 60/40 split
 then 90/10 train/val, scaler fit on train, GBDT fit on the 54% train portion).
 
-Run:  ./venv/bin/python scripts/18_paper_final_analysis.py
+Run:  python scripts/18_paper_final_analysis.py
 """
 import json
 import sys

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-11_paper_eval.py — Evaluate FAE using the metrics from Wu & Cheng (AAAI 2021).
+11_paper_eval.py: Evaluate FAE using the metrics from Wu & Cheng (AAAI 2021).
 
 The original FAE paper uses two metrics (Section "Design of Experiments"):
   1. Linear reconstruction error: train LinearRegression (no regularization) on
@@ -246,9 +246,9 @@ def main():
                     f"+/- {rand['recon_mse'].std():.6f}, "
                     f"acc = {rand['accuracy'].mean():.4f} "
                     f"+/- {rand['accuracy'].std():.4f}")
-        logger.info(f"  FAE beats random in recon: "
+        logger.info(f"  FAE better than random, recon: "
                     f"{summary_rows[-1]['fae_recon_better_than_random']}/{len(rand)}")
-        logger.info(f"  FAE beats random in acc:   "
+        logger.info(f"  FAE better than random, acc:   "
                     f"{summary_rows[-1]['fae_accuracy_better_than_random']}/{len(rand)}")
 
     summary = pd.DataFrame(summary_rows)

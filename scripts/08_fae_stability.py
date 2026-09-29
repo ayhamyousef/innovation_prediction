@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-08_fae_stability.py — Test FAE selection stability under bootstrap subsampling.
+08_fae_stability.py: Test FAE selection stability under bootstrap subsampling.
 
-FAE is claimed to be algorithmically stable: adding or removing a few examples
-should not change which features it selects. That claim is central to using it as
-a selection method, and this script tests it directly rather than assuming it.
+A feature-selection method is more useful if its choice survives small changes to
+the data. This is a stricter criterion than the smoothness across K examined in the
+original FAE evaluation (see 11_paper_eval.py), and this script tests it directly.
 
 For each (K, fraction) combination, run FAE multiple times on independently
 bootstrapped subsamples of the data and record which features were selected.

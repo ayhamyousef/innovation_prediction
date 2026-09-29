@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-10_classify_top_subsets.py — Classification on top-silhouette subsets and FAE.
+10_classify_top_subsets.py: Classification on top-silhouette subsets and FAE.
 
 Internal cluster-quality indices are unlabelled measures and can disagree with
 each other. Downstream classification gives a sharper comparison, because there the

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-02_build_trajectories.py — Extract technologies, compute features, and
+02_build_trajectories.py: Extract technologies, compute features, and
 build reuse trajectories from patent data.
 
 Memory-optimized: streams JSONL in two passes to avoid loading all 4.9M
@@ -71,7 +71,7 @@ def main():
     tech_df, component_counts = extractor.extract_technologies(patents_minimal)
     tech_df = extractor.compute_features(tech_df, component_counts, patents_minimal)
 
-    # Free the minimal patent list — no longer needed
+    # Free the minimal patent list; it is no longer needed
     del patents_minimal
 
     # Build reuse trajectories & filter

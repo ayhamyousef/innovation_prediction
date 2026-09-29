@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-15_paper_figures.py — Publication figures from already-computed numeric results
+15_paper_figures.py: Publication figures from already-computed numeric results
 (runs locally; no trajectories needed).
 
   1. fraction_sweep         - macro-F1 vs training fraction, per model.
@@ -169,7 +169,7 @@ def fig_fae_vs_all7():
     ax.set_ylabel("Trajectory-task ROC-AUC")
     ax.set_ylim(*ROC_YLIM)
     ax.yaxis.set_major_locator(MultipleLocator(ROC_TICK))
-    # Chen baseline goes in the legend (every x has a bar at y=0.728, so an
+    # The Chen et al. reference line goes in the legend (every x has a bar at y=0.728, so an
     # in-plot annotation would overlap the bars).
     ax.legend([b1, b2, chen],
               ["FAE $K{=}3$ (3 features)", "All 7 features",

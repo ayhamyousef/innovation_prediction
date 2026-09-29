@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-14_label_transfer_validation.py — Validation against an independently constructed labeling.
+14_label_transfer_validation.py: Validation against an independently constructed labeling.
 
 Addresses the concern that our unsupervised labeling (k-means on feature
 vectors) shares inputs with the supervised classifier. The test:
 
-  1. Train the classifier on OUR k-means feature-cluster labels (the main
-     pipeline), reproducing the exact 60/40 split from 05_classify.py.
+  1. Train the classifier on OUR k-means feature-cluster labels (the
+     emergence-profile route), reproducing the exact 60/40 split from 05_classify.py.
   2. Independently generate Chen et al.-style labels by clustering the
      reuse TRAJECTORIES (not features) with k-means, following Chen et al.'s
-     shape-based clustering. This is a fully independent labeling scheme.
+     shape-based clustering. This labeling is constructed without the features.
   3. WITHOUT retraining, apply the trained classifier to the test set and
      measure how well its predictions agree with the trajectory-shape labels.
 
-If agreement is high, the classifier has learned structure that generalizes
-across labeling schemes, not just memorized the k-means partition. That
-directly answers the labeling concern.
+Both outcomes are informative. High agreement would mean the classifier has
+learned structure that carries across labeling schemes; low agreement would mean
+the two labelings describe different structure, so accuracy on the feature labels
+must not be read as recovering trajectory shape.
 
 Label-space note: our classifier outputs k=3 feature-cluster predictions.
 Trajectory clustering can use a different k (Chen et al. used 4). To compare:
@@ -23,12 +24,13 @@ Trajectory clustering can use a different k (Chen et al. used 4). To compare:
     label matching and work across different cluster counts. These are the
     primary, most rigorous numbers.
   - When k matches (default 3), we also Hungarian-match the labels and report
-    accuracy / macro-F1 / ROC-AUC, the "performance on new labels" framing
-    a target external to the features, alongside the reference GBDT ROC-AUC of 0.728
-    reported by Chen et al. (2025) on a different corpus.
+    accuracy / macro-F1 / ROC-AUC against this external target. The GBDT ROC-AUC
+    of 0.728 reported by Chen et al. (2025) on a different corpus is printed as a
+    reference point, not a like-for-like comparison.
 
-Backup mode (--retrain): if transfer is weak, retrain the classifier from
-scratch on the trajectory-shape labels (supports k=4) and evaluate normally.
+Retrain mode (--retrain): train the classifier from scratch on the
+trajectory-shape labels (supports k=4) and evaluate it on held-out data. This is
+the trajectory task reported in the paper.
 
 Usage:
     # Primary transfer test (k=3 trajectory clusters to match our model)
@@ -40,7 +42,7 @@ Usage:
     # Agreement-only at Chen et al.'s k=4 (no matched accuracy possible)
     python scripts/14_label_transfer_validation.py --traj-k 4
 
-    # Backup: retrain on trajectory-shape labels (k=4) and evaluate normally
+    # Retrain on trajectory-shape labels (k=4) and evaluate on held-out data
     python scripts/14_label_transfer_validation.py --traj-k 4 --retrain
 """
 
@@ -108,8 +110,8 @@ def main():
                         help="Trajectory clustering method. Euclidean is fast and "
                              "couples 92.85%% with DTW per Chen et al. Appendix A.")
     parser.add_argument("--retrain", action="store_true",
-                        help="Backup mode: retrain classifier on trajectory-shape "
-                             "labels and evaluate normally.")
+                        help="Retrain mode: train the classifier on trajectory-shape "
+                             "labels and evaluate on held-out data.")
     parser.add_argument("--tag", default=None,
                         help="Optional suffix for the output filename, to avoid "
                              "overwriting (e.g. 'all7' for the all-7-feature run).")
@@ -178,7 +180,7 @@ def main():
     }
 
     # ================================================================
-    # MODE A: TRANSFER TEST (default) — train on feature labels, test
+    # MODE A: TRANSFER TEST (default): train on feature labels, test
     #         agreement with trajectory labels, NO retraining.
     # ================================================================
     if not args.retrain:
@@ -191,7 +193,7 @@ def main():
             idx_train_full, test_size=args.val_ratio,
             stratify=y_feat[idx_train_full], random_state=seed
         )
-        logger.info(f"Split — train {len(idx_train)}, val {len(idx_val)}, "
+        logger.info(f"Split: train {len(idx_train)}, val {len(idx_val)}, "
                     f"test {len(idx_test)}")
 
         scaler = StandardScaler()
@@ -285,7 +287,7 @@ def main():
                     "is a property of the two labeling schemes, not the model.")
 
     # ================================================================
-    # MODE B: RETRAIN backup — train directly on trajectory labels.
+    # MODE B: RETRAIN: train directly on trajectory labels.
     # ================================================================
     else:
         logger.info("RETRAIN mode: training classifier on trajectory-shape labels")
@@ -304,7 +306,7 @@ def main():
         Xtr = scaler.fit_transform(Xtr).astype(np.float32)
         Xva = scaler.transform(Xva).astype(np.float32)
         Xte = scaler.transform(Xte).astype(np.float32)
-        logger.info(f"Split — train {len(ytr)}, val {len(yva)}, test {len(yte)}")
+        logger.info(f"Split: train {len(ytr)}, val {len(yva)}, test {len(yte)}")
         logger.info(f"Trajectory-label distribution (train): "
                     f"{dict((int(c), int((ytr==c).sum())) for c in range(traj_k))}")
 
@@ -326,21 +328,17 @@ def main():
             logger.warning(f"ROC-AUC failed: {e}")
 
         logger.info("=" * 60)
-        logger.info("RETRAIN ON TRAJECTORY LABELS — TEST RESULTS")
+        logger.info("RETRAIN ON TRAJECTORY LABELS: TEST RESULTS")
         logger.info("=" * 60)
         logger.info(f"  Accuracy : {acc:.4f}")
         logger.info(f"  Macro-F1 : {f1:.4f}")
         if auc is not None:
             logger.info(f"  ROC-AUC  : {auc:.4f}  "
-                        f"(Chen et al. GBDT = {CHEN_GBDT_ROC_AUC})")
-            if auc > CHEN_GBDT_ROC_AUC:
-                logger.info("  -> Beats Chen et al.'s GBDT baseline.")
-            else:
-                logger.info("  -> Does not beat Chen et al.'s GBDT baseline.")
+                        f"(Chen et al. reference = {CHEN_GBDT_ROC_AUC}, different corpus)")
 
         results["retrain"] = {
             "accuracy": acc, "macro_f1": f1, "roc_auc_ovr_macro": auc,
-            "beats_chen_baseline": (auc is not None and auc > CHEN_GBDT_ROC_AUC),
+            "above_chen_reference": (auc is not None and auc > CHEN_GBDT_ROC_AUC),
         }
 
     # ---- Save ----

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-05_classify.py — Train tabular DL models on clustered technology data.
+05_classify.py: Train the tabular classifiers on clustered technology data.
 
-Stages 3 and 4 of the pipeline:
+The classification stage of the pipeline:
   - Load pre-clustered data (from 04b_recluster.py output)
   - Split: 60% train / 40% test, within train 90% train / 10% val
-  - Train TabNet, TabM, and/or FT-Transformer
+  - Train any of the seven classifiers (--models; default TabNet, TabM, FT-Transformer)
   - Report accuracy, macro F1, per-class metrics
 
 Usage:
@@ -157,7 +157,7 @@ def main():
         stratify=y_train_full, random_state=seed
     )
 
-    logger.info(f"Split sizes — train: {len(y_train)}, "
+    logger.info(f"Split sizes, train: {len(y_train)}, "
                 f"val: {len(y_val)}, test: {len(y_test)}")
 
     # Normalize features (fit on train only)

@@ -4,11 +4,11 @@
 GRU sequence clustering.
 
 Two questions:
-  (1) Sweep k in {3,4,5} on the trained GRU latent Z and check whether more clusters
-      give something interpretable. The k=3 run left a ~69% catch-all cluster, so 4-5
-      groups may split it into recognizable shapes.
-  (2) Downstream classification as an INDEPENDENT validation of the sequence clustering
-      (on top of silhouette). The GRU clusters are derived from the reuse trajectories,
+  (1) Sweep k in {3,4,5} on the trained GRU latent Z and characterize the clusters
+      at each count, to check whether a larger k yields additional interpretable
+      reuse patterns.
+  (2) Downstream classification as an external check on the sequence clustering
+      (in addition to silhouette). The GRU clusters are derived from the reuse trajectories,
       not from the 7 emergence-time features, so we test how well those features can
       *predict* the GRU cluster label. Good predictability means the trajectory clusters
       correspond to structure that is recoverable at emergence time; poor predictability
@@ -22,8 +22,8 @@ Alignment: rows of the labeled feature CSV are in the same order as latent_Z. Ve
 by reproducing ARI(GRU k=3 labels, feature clusters) = 0.0425 from the original run;
 the script re-checks this and warns if it drifts.
 
-Run (laptop, CPU):
-    ./venv/bin/python scripts/17_gru_ksweep_downstream.py
+Run (CPU is sufficient):
+    python scripts/17_gru_ksweep_downstream.py
 """
 import argparse
 import json

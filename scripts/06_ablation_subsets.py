@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-06_ablation_subsets.py — Exhaustive feature-subset ablation.
+06_ablation_subsets.py: Exhaustive feature-subset ablation.
 
 For every non-empty subset of the 7 features (2^7 - 1 = 127 subsets, or
 a restricted size range), cluster with k-means and record silhouette.
 
 Answers three questions at once:
-  1. Does FAE K=3 beat random 3-feature subsets?
+  1. How does the FAE K=3 subset rank among all 3-feature subsets?
      -> rank FAE's subset silhouette among all C(7,3)=35 size-3 subsets.
-  2. Are ATTENT_SIZE and INVENT_APPL detrimental?
+  2. What is the marginal effect of each feature?
      -> for each feature, compare avg silhouette of subsets containing it
         vs subsets excluding it (the "marginal effect" of that feature).
-  3. Do fewer features (size < 3) perform worse?
-     -> best silhouette at each subset size; expect a peak at size 3.
+  3. How does clustering quality vary with subset size?
+     -> best silhouette at each subset size.
 
 Usage:
     # Default: all sizes 1..6, k=3 clusters
@@ -179,7 +179,7 @@ def main():
         if len(match) == 1:
             fae_row = match.iloc[0]
             fae_sil = float(fae_row["silhouette"])
-            # Rank: how many size-3 subsets beat or tie FAE?
+            # Rank: how many size-3 subsets match or exceed FAE?
             better = int((size3["silhouette"] > fae_sil).sum())
             equal = int((size3["silhouette"] == fae_sil).sum())
             rank = better + 1  # 1 = best

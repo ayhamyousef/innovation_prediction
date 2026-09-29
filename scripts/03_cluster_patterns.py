@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-03_cluster_patterns.py — Cluster technology reuse trajectories using
-DTW + k-means to generate the 4 growth curve labels.
+03_cluster_patterns.py: Optional replication of the trajectory clustering of
+Chen et al. (2025), DTW k-means with k=4 on the z-normalized reuse trajectories.
+
+No reported result depends on this stage. The trajectory-shape labels in the
+paper use Euclidean k-means on the same z-normalized trajectories (scripts 14,
+18 and 27), which Chen et al. report agrees with the DTW clustering on 92.85%
+of technologies.
 
 Usage:
     python scripts/03_cluster_patterns.py [--config config/default.yaml]

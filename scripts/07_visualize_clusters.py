@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-07_visualize_clusters.py — Publication-quality cluster visualizations.
+07_visualize_clusters.py: Publication-quality cluster visualizations.
 
 Produces four plot types for a chosen feature config + cluster count:
   1. 2D PCA scatter of technologies colored by cluster
@@ -8,10 +8,10 @@ Produces four plot types for a chosen feature config + cluster count:
   3. Cluster-mean trajectories (cumulative reuse over time)
   4. Representative trajectory examples (closest-to-centroid) per cluster
 
-Default target: FAE K=3 features, k=3 clusters — the winning config.
+Default target: FAE K=3 features, k=3 clusters, the configuration reported in the paper.
 
 Usage:
-    # Defaults (fae_k3_k3, the best config)
+    # Defaults (fae_k3_k3)
     python scripts/07_visualize_clusters.py
 
     # Different config
@@ -289,7 +289,7 @@ def main():
     X_scaled = StandardScaler().fit_transform(X)
     labels = tech_df["cluster"].values.astype(int)
 
-    # Load trajectories (aligned to tech_df by row order — same source in 04b_recluster)
+    # Load trajectories (aligned to tech_df by row order; same source as 04b_recluster)
     processed_dir = Path(cfg["data"]["processed_dir"])
     traj_path = processed_dir / "trajectories.npy"
     trajectories = None
@@ -302,7 +302,7 @@ def main():
             )
             trajectories = None
     else:
-        logger.warning(f"No trajectories.npy at {traj_path} — skipping trajectory plots")
+        logger.warning(f"No trajectories.npy at {traj_path}; skipping trajectory plots")
 
     # Plot 1: PCA scatter
     logger.info("Plot 1/4: PCA scatter")

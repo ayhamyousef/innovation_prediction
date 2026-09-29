@@ -16,6 +16,6 @@
     "accuracy": 0.5967354122254722,
     "macro_f1": 0.5753432080722787,
     "roc_auc_ovr_macro": 0.8251918999571493,
-    "beats_chen_baseline": true
+    "above_chen_reference": true
   }
 }

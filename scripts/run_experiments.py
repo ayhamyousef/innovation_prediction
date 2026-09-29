@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-run_experiments.py — Run the full experiment matrix:
-  FAE K={3,4,5,all7} × Cluster k={3,4,5} × Model={TabNet,TabM,FT-Transformer}
+run_experiments.py: Run the full experiment matrix:
+  FAE K={3,4,5,all7} x Cluster k={3,4,5} x Model={TabNet,TabM,FT-Transformer}
 
-That's 4 × 3 × 3 = 36 experiments total (27 with FAE + 9 baseline).
+That is 4 x 3 x 3 = 36 experiments in total (27 with FAE selection and 9 with all
+seven features).
 
 Usage:
     # Full matrix (36 experiments):

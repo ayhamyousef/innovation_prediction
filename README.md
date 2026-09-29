@@ -56,7 +56,7 @@ Expect the fetch to take several hours and to produce several gigabytes.
 
     python scripts/01_fetch_data.py --start-year 2002 --end-year 2022
     python scripts/02_build_trajectories.py     # technologies, trajectories, seven features
-    python scripts/03_cluster_patterns.py       # trajectory-shape labels
+    python scripts/03_cluster_patterns.py       # optional: DTW clustering as in Chen et al.
     python scripts/04_feature_selection.py      # FAE selection, K in {3,4,5}
     python scripts/04b_recluster.py             # emergence-profile labels
     python scripts/05_classify.py               # the seven tabular classifiers
@@ -64,15 +64,18 @@ Expect the fetch to take several hours and to produce several gigabytes.
     python scripts/16_sequence_autoencoder.py --latent-dim 8 --l1 0.01   # GRU autoencoder, sequence-based labels
     python scripts/17_gru_ksweep_downstream.py  # cluster-count sweep and downstream prediction
 
-Stages 07 through 15 produce the supporting analyses and the figures. Stages 18, 21 and 23
-through 26 are the analyses added during revision, described in the next section.
+Stages 07 through 15 produce the supporting analyses and the figures, and stages 18 and 21
+add the cluster-count, agreement and seed-stability results. Stages 23 through 27 are
+described in the next section. The trajectory-shape labels are built within stages 14, 18
+and 27 by Euclidean k-means on the z-normalized trajectories; stage 03 is an optional DTW
+replication of Chen et al. (2025) on which no reported result depends.
 `run_experiments.py` orchestrates the full classification matrix.
 
 Every stage takes its seed from the configuration and defaults to 42. Feature selection and
 clustering are fitted on the full corpus, because they constitute label construction; the
 stratified 60/40 train and test split is applied only at the classification stage.
 
-## Analyses added during revision
+## Supporting analyses
 
 These back specific claims and can be run once the pipeline above has completed.
 
@@ -81,7 +84,7 @@ average precision for the sequence-based labels. It establishes that the smalles
 classes is the best ranked despite having the lowest F1, so its low F1 is a decision-threshold
 effect rather than a limit on identifying the class.
 
-`scripts/24_feature_truncation_audit.py` quantifies a defect in the corpus. `ACCESS_SIZE` and
+`scripts/24_feature_truncation_audit.py` quantifies a limitation of the corpus. `ACCESS_SIZE` and
 `ACCESS_TREND` are computed over the five years preceding emergence, but the patent record
 assembled here begins in 2002. For technologies emerging in 2002 that window falls entirely
 outside the data and `ACCESS_SIZE` is zero for all 26,471 of them; the feature stays
@@ -99,6 +102,10 @@ Restricting to technologies that emerged in 2012 or earlier and truncating every
 ten years leaves a subcohort in which all 179,459 members are observed for exactly the same
 span. Setting `MAX_COHORT=2022` includes the censored cohorts at the same horizon, which
 isolates the effect of censoring from the effect of the horizon itself.
+
+`scripts/27_traj_task_recency_control.py` applies the same emergence-year control to the
+trajectory-shape task, comparing the seven features against emergence year alone under the
+same protocol.
 
 ## Known limitations of the data
 

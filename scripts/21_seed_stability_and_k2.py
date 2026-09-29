@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-21_seed_stability_and_k2.py -- two artifact gaps found by verification.
+21_seed_stability_and_k2.py -- seed stability of the k=3 downstream result, and the
+k=2 row of the sequence-labeling sweep.
 
-A. Persist the k=3 downstream seed-stability result: GRU k=3 labels held
+A. The k=3 downstream seed-stability result: GRU k=3 labels held
    FIXED (ksweep labels_k3.npy), GBDT all-7 refit under three train/test
-   split seeds. (Previously computed in a scratch log only.)
+   split seeds.
 B. k=2 row for the sequence-labeling sweep table: k-means (k=2) on the GRU
    latent, sampled silhouette, smallest-cluster share, and GBDT all-7
    downstream ROC-AUC under the standard protocol.
 
-Run:  ./venv/bin/python scripts/21_seed_stability_and_k2.py
+Run:  python scripts/21_seed_stability_and_k2.py
 """
 import json
 import sys

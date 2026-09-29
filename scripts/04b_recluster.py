@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-04b_recluster.py — Re-cluster technologies using FAE-selected features
+04b_recluster.py: Re-cluster technologies using FAE-selected features
 and variable cluster counts.
 
 Clusters on the selected feature vectors (euclidean k-means), NOT on

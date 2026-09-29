@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-12_training_fraction_sweep.py — Test whether DL holds up better than GBDT
-under reduced training data.
+12_training_fraction_sweep.py: Compare the classifiers as the training set
+is reduced.
 
 At full training data GBDT already reaches near-100% accuracy on the FAE-selected
 features, which leaves no room to distinguish the model families. Reducing the
@@ -14,7 +14,7 @@ model in {gbdt, tabm, ft_transformer, extra_trees, tabnet}:
   - Evaluate on the FULL test set
   - Record accuracy, macro-F1, train-test gap
 
-Default config: FAE K=3 selected features, k=3 clusters (the headline config).
+Default config: FAE K=3 selected features, k=3 clusters (the configuration reported in the paper).
 
 Usage:
     # Default sweep

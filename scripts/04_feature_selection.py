@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-04_feature_selection.py — Run FAE unsupervised feature selection on the
+04_feature_selection.py: Run FAE unsupervised feature selection on the
 7 Chen et al. technology features.
 
 Tests K=3, K=4, K=5 (number of features to select out of 7).

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-01_fetch_data.py — Fetch patent data from USPTO Open Data Portal API.
+01_fetch_data.py: Fetch patent data from USPTO Open Data Portal API.
 
 Downloads granted utility patent metadata (title, CPC codes, inventors)
 via the ODP API, month by month, with per-month caching.
