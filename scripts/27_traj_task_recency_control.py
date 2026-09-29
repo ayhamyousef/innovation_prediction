@@ -6,6 +6,13 @@ trajectory-shape labels, the k=4 Euclidean k-means labeling that reproduces the
 published construction and on which GBDT reaches the 0.831 reported in Section 5.6.
 Same protocol as scripts/17 and 25: stratified 60/40, standardize on train, one-vs-rest
 macro ROC-AUC, seed 42, only the predictor set varies.
+
+Usage (from the repository root):
+    python scripts/27_traj_task_recency_control.py
+
+Requires the all-seven-feature table from 04b_recluster.py (run without --fae-k)
+and the k=4 trajectory-shape labels written by 18_paper_final_analysis.py. Writes
+results/paper_final_analysis/traj_task_recency_control.json.
 """
 import json, numpy as np, pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier

@@ -11,6 +11,13 @@ OvR macro ROC-AUC, seed 42):
   no_access       drop ACCESS_SIZE and ACCESS_TREND, the two truncated features
   year_only       emergence year as the single predictor
   all7_plus_year  all seven features plus emergence year
+
+Usage (from the repository root):
+    python scripts/25_recency_shortcut_check.py
+
+Requires the all-seven-feature table from 04b_recluster.py (run without --fae-k)
+and the k=3 sequence labels from 17_gru_ksweep_downstream.py. Writes
+results/paper_final_analysis/recency_shortcut_check.json.
 """
 import json
 import numpy as np

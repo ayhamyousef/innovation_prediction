@@ -24,6 +24,17 @@ Reported for the censoring-free subcohort:
   no_access   dropping the two left-truncated features
 Compare against the full-corpus figures in results/paper_final_analysis/
 recency_shortcut_check.json (all7 0.9143, year_only 0.8736, no_access 0.8498).
+
+Usage (from the repository root):
+    # censoring-free arm: cohorts up to 2012, ten-year horizon
+    python scripts/26_censoring_free_robustness.py
+
+    # control arm: all cohorts at the same ten-year horizon
+    MAX_COHORT=2022 python scripts/26_censoring_free_robustness.py
+
+Requires the all-seven-feature table from 04b_recluster.py (run without --fae-k).
+Retrains the GRU autoencoder, so a GPU is recommended; it falls back to the CPU.
+Writes results/paper_final_analysis/censoring_free_robustness_cohort<MAX_COHORT>.json.
 """
 import json
 import os

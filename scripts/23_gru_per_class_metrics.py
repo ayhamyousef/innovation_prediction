@@ -2,6 +2,13 @@
 Per-class results for GBDT on the sequence-based (GRU) labels at k=3: precision,
 recall, F1, one-vs-rest ROC-AUC and average precision for each class, under the
 standard protocol (stratified 60/40 split, standardization fit on train, seed 42).
+
+Usage (from the repository root):
+    python scripts/23_gru_per_class_metrics.py
+
+Requires the all-seven-feature table from 04b_recluster.py (run without --fae-k)
+and the k=3 sequence labels from 17_gru_ksweep_downstream.py. Writes
+results/paper_final_analysis/gru_k3_per_class_metrics.json.
 """
 import numpy as np, pandas as pd, json
 from sklearn.model_selection import train_test_split

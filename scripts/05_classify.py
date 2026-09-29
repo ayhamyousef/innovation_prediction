@@ -10,7 +10,7 @@ The classification stage of the pipeline:
 
 Usage:
     python scripts/05_classify.py --labeled-csv results/clustering/technologies_labeled_fae_k3_k3.csv
-                                   --features ACCESS_SIZE ACCESS_TREND SIM_TECH
+                                   --features SIM_TECH ACCESS_SIZE SIM_ACCESS
                                    [--models tabnet tabm ft_transformer]
                                    [--config config/default.yaml]
 """

@@ -40,8 +40,16 @@ services:
       - ./data:/app/data
       - ./results:/app/results
 
-  # Stage 04b: emergence-profile labels from the selected features
+  # Stage 04b: emergence-profile labels from the FAE K=3 features
   recluster:
+    build: .
+    command: ["scripts/04b_recluster.py", "--fae-k", "3"]
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+
+  # Stage 04b on all seven features: the table the later analyses read
+  recluster-all7:
     build: .
     command: ["scripts/04b_recluster.py"]
     volumes:
@@ -51,7 +59,10 @@ services:
   # Stage 05: the seven tabular classifiers
   classify:
     build: .
-    command: ["scripts/05_classify.py"]
+    command: ["scripts/05_classify.py",
+              "--labeled-csv", "results/clustering/technologies_labeled_fae_k3_k3.csv",
+              "--features", "SIM_TECH", "ACCESS_SIZE", "SIM_ACCESS",
+              "--models", "tabnet", "gbdt", "extra_trees", "tabm", "ft_transformer", "tabkan", "tabmixer"]
     volumes:
       - ./data:/app/data
       - ./results:/app/results

@@ -7,6 +7,12 @@ identically zero; they stay undercounted until the 2007 cohort, the first with
 a fully covered window. This script quantifies the effect and reports the
 cluster contrasts with and without the affected cohorts. Backs the fifth
 limitation in Section 6.2 and the qualification in Section 5.2.
+
+Usage (from the repository root):
+    python scripts/24_feature_truncation_audit.py
+
+Requires the emergence-profile table from 04b_recluster.py --fae-k 3. Writes
+results/paper_final_analysis/feature_truncation_audit.json.
 """
 import json
 import numpy as np

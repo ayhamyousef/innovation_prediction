@@ -58,15 +58,20 @@ Expect the fetch to take several hours and to produce several gigabytes.
     python scripts/02_build_trajectories.py     # technologies, trajectories, seven features
     python scripts/03_cluster_patterns.py       # optional: DTW clustering as in Chen et al.
     python scripts/04_feature_selection.py      # FAE selection, K in {3,4,5}
-    python scripts/04b_recluster.py             # emergence-profile labels
-    python scripts/05_classify.py               # the seven tabular classifiers
+    python scripts/04b_recluster.py --fae-k 3   # emergence-profile labels (FAE K=3 features)
+    python scripts/04b_recluster.py             # all-seven-feature table, read by later analyses
+    python scripts/05_classify.py \
+        --labeled-csv results/clustering/technologies_labeled_fae_k3_k3.csv \
+        --features SIM_TECH ACCESS_SIZE SIM_ACCESS \
+        --models tabnet gbdt extra_trees tabm ft_transformer tabkan tabmixer
     python scripts/06_ablation_subsets.py       # exhaustive feature-subset ablation
     python scripts/16_sequence_autoencoder.py --latent-dim 8 --l1 0.01   # GRU autoencoder, sequence-based labels
     python scripts/17_gru_ksweep_downstream.py  # cluster-count sweep and downstream prediction
 
 Stages 07 through 15 produce the supporting analyses and the figures, and stages 18 and 21
 add the cluster-count, agreement and seed-stability results. Stages 23 through 27 are
-described in the next section. The trajectory-shape labels are built within stages 14, 18
+described in the next section; each lists its prerequisites and output in its header, and
+stage 18 must run before stage 27. The trajectory-shape labels are built within stages 14, 18
 and 27 by Euclidean k-means on the z-normalized trajectories; stage 03 is an optional DTW
 replication of Chen et al. (2025) on which no reported result depends.
 `run_experiments.py` orchestrates the full classification matrix.
